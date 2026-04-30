@@ -150,6 +150,8 @@ export default function App() {
   const [showAnnouncementModal, setShowAnnouncementModal] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDisclaimerDismissed, setIsDisclaimerDismissed] = useState(false);
+  const [historySpoofing, setHistorySpoofing] = useState(false);
+  const [autoHistorySpoof, setAutoHistorySpoof] = useState<boolean>(localStorage.getItem('autoHistorySpoof') !== 'false');
 
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings>(() => {
     const saved = localStorage.getItem('widget_settings');
@@ -263,6 +265,18 @@ export default function App() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [closeProtection]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (autoHistorySpoof) {
+      interval = setInterval(() => {
+        washHistory(true);
+      }, 10 * 60 * 1000); // 10 minutes
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [autoHistorySpoof]);
 
 
   useEffect(() => {
@@ -535,6 +549,41 @@ export default function App() {
   const triggerPanic = () => {
     if (panicEnabled) {
       window.location.href = panicUrl.startsWith('http') ? panicUrl : `https://${panicUrl}`;
+    }
+  };
+
+  const washHistory = (silent: boolean = false) => {
+    setHistorySpoofing(true);
+    const decoys = [
+      'Google Classroom',
+      'Google Docs',
+      'Wikipedia - Photosynthesis',
+      'Khan Academy - Algebra',
+      'Google Search - academic sources',
+      'Schoology - Dashboard',
+      'Canvas - My Courses',
+      'Google Drive - Shared with me',
+      'Library of Congress',
+      'Educational Resources - PDF'
+    ];
+
+    try {
+      // Push 10 entries to bury the site in history
+      for (let i = 0; i < decoys.length; i++) {
+        window.history.pushState({ decoy: true }, decoys[i], `?v=${Math.random().toString(36).substring(7)}`);
+      }
+      // Re-push the current state so the app continues normally
+      window.history.pushState({ main: true }, 'LACTOSE', window.location.pathname);
+      if (!silent) {
+        addNotification('History washed! 10 decoy entries added to stack.', 'success');
+      }
+    } catch (e) {
+      console.error('History spoofing failed:', e);
+      if (!silent) {
+        addNotification('History spoofing failed due to browser restrictions.', 'error');
+      }
+    } finally {
+      setTimeout(() => setHistorySpoofing(false), 2000);
     }
   };
 
@@ -1549,6 +1598,75 @@ export default function App() {
                         >
                           <motion.div 
                             animate={{ x: passcodeEnabled ? 20 : 0 }}
+                            className="w-4 h-4 bg-white rounded-full shadow-lg"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* History Spoofer Section */}
+                <section>
+                  <div className="flex items-center gap-4 mb-8">
+                    <RotateCcw size={20} style={{ color: 'var(--primary)' }} />
+                    <h3 className="text-xl font-black tracking-tighter uppercase italic">History Spoofer</h3>
+                    <div className="h-px flex-1 bg-white/5" />
+                  </div>
+                  <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8 space-y-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">{obfuscate('Trace Washer', textObfuscationLevel)}</h4>
+                        <p className="text-[10px] text-zinc-500 italic mb-2">Bury this site deep in your browser's history stack.</p>
+                        <p className="text-[10px] text-zinc-500 italic max-w-md">
+                          Click "Wash History" to rapidly push 10 fake entries to your history stack. Hitting the "Back" button or checking history will show educational titles instead of the arcade.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => washHistory(false)}
+                        disabled={historySpoofing}
+                        className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl flex items-center gap-3 ${
+                          historySpoofing 
+                            ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
+                            : 'bg-white text-black hover:scale-105 active:scale-95'
+                        }`}
+                      >
+                        {historySpoofing ? (
+                          <>
+                            <RotateCcw size={18} className="animate-spin" />
+                            Washing...
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw size={18} />
+                            Wash History
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="pt-8 border-t border-white/5 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">{obfuscate('Auto-Wash', textObfuscationLevel)}</h4>
+                        <p className="text-[10px] text-zinc-500 italic">Automatically "wash" history every 10 minutes.</p>
+                      </div>
+                      <div className="flex items-center gap-3 bg-zinc-950 px-4 py-2 rounded-full border border-white/5">
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${autoHistorySpoof ? 'text-white' : 'text-zinc-500'}`}>
+                          {autoHistorySpoof ? 'On' : 'Off'}
+                        </span>
+                        <button
+                          onClick={() => {
+                            const next = !autoHistorySpoof;
+                            setAutoHistorySpoof(next);
+                            localStorage.setItem('autoHistorySpoof', String(next));
+                          }}
+                          className={`relative w-10 h-5 rounded-full transition-all flex items-center px-0.5 ${
+                            autoHistorySpoof ? 'bg-zinc-700' : 'bg-zinc-950 border border-white/5'
+                          }`}
+                          style={autoHistorySpoof ? { backgroundColor: 'var(--primary)' } : {}}
+                        >
+                          <motion.div 
+                            animate={{ x: autoHistorySpoof ? 20 : 0 }}
                             className="w-4 h-4 bg-white rounded-full shadow-lg"
                           />
                         </button>
