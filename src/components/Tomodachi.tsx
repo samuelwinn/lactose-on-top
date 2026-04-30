@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Heart, Utensils, Gamepad2, Moon, Sun, RefreshCcw, X, Smile, Frown, Meh, HelpCircle, Info } from 'lucide-react';
 import { WindowHeader } from '../App';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface PetState {
   name: string;
@@ -31,6 +33,7 @@ const INITIAL_STATE: PetState = {
 };
 
 export const Tomodachi: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { level } = useObfuscation();
   const [showGuide, setShowGuide] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState('');
@@ -296,7 +299,7 @@ export const Tomodachi: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 }}
                 title="Click to rename"
               >
-                {pet.name}
+                {obfuscate(pet.name, level)}
                 <RefreshCcw size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </h2>
             )}
@@ -308,7 +311,7 @@ export const Tomodachi: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 exit={{ opacity: 0, y: -10 }}
                 className="text-zinc-500 text-sm font-medium h-5"
               >
-                {message}
+                {obfuscate(message, level)}
               </motion.p>
             </AnimatePresence>
           </div>
@@ -323,7 +326,7 @@ export const Tomodachi: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <div key={stat.label} className="bg-zinc-900/50 border border-white/5 p-4 rounded-2xl">
                 <div className="flex items-center gap-2 mb-2 text-zinc-500">
                   {stat.icon}
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{stat.label}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{obfuscate(stat.label, level)}</span>
                 </div>
                 <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
                   <motion.div 

@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Delete } from 'lucide-react';
 import { WindowHeader } from '../App';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface CalculatorProps {
   onClose: () => void;
 }
 
 export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
+  const { level } = useObfuscation();
   const [display, setDisplay] = useState('0');
   const [prevValue, setPrevValue] = useState<number | null>(null);
   const [operator, setOperator] = useState<string | null>(null);
@@ -113,8 +116,8 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
       <div className="flex-1 flex flex-col p-6 max-w-md mx-auto w-full justify-center">
         {/* Display Area */}
         <div className="border-2 border-[#76c7b7] rounded-2xl p-8 mb-6 min-h-[120px] flex items-center justify-end shadow-[0_0_15px_rgba(118,199,183,0.1)]">
-          <div className="text-6xl font-light tracking-tight overflow-hidden text-ellipsis whitespace-nowrap w-full text-right font-mono">
-            {display}
+          <div className="text-6xl font-light tracking-tight overflow-hidden text-ellipsis whitespace-nowrap w-full text-right font-mono tabular-nums">
+            {obfuscate(display, level)}
           </div>
         </div>
 

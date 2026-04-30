@@ -1,8 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Square, Eraser, Trash2, Download, MousePointer2, Circle, Type, Palette } from 'lucide-react';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 export const PaintApp: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { level } = useObfuscation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000'); // Default black
@@ -112,13 +115,13 @@ export const PaintApp: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             active={tool === 'brush'} 
             onClick={() => setTool('brush')}
             icon={<MousePointer2 size={24} />}
-            label="BRUSH"
+            label={obfuscate('BRUSH', level)}
           />
           <ToolButton 
             active={tool === 'eraser'} 
             onClick={() => setTool('eraser')}
             icon={<Eraser size={24} />}
-            label="ERASER"
+            label={obfuscate('ERASER', level)}
           />
         </div>
 
@@ -145,7 +148,7 @@ export const PaintApp: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         {/* Size Section */}
         <div className="flex flex-col justify-center px-6 border-r-4 border-black shrink-0">
-          <span className="text-[10px] font-black uppercase tracking-widest mb-1 italic">STRENGTH: {brushSize}</span>
+          <span className="text-[10px] font-black uppercase tracking-widest mb-1 italic">{obfuscate('STRENGTH', level)}: {obfuscate(String(brushSize), level)}</span>
           <input 
             type="range" 
             min="1" 
@@ -158,8 +161,8 @@ export const PaintApp: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         {/* Action Section */}
         <div className="flex items-center px-6 gap-4 shrink-0">
-          <ActionButton onClick={clearCanvas} icon={<Trash2 size={20} />} label="PURGE" />
-          <ActionButton onClick={downloadImage} icon={<Download size={20} />} label="EXPORT" />
+          <ActionButton onClick={clearCanvas} icon={<Trash2 size={20} />} label={obfuscate('PURGE', level)} />
+          <ActionButton onClick={downloadImage} icon={<Download size={20} />} label={obfuscate('EXPORT', level)} />
         </div>
       </div>
 

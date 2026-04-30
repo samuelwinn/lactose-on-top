@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Clock, Layers, Heart, Bell, Star, Power } from 'lucide-react';
 import { WidgetSettings } from '../types';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface WidgetAppProps {
   settings: WidgetSettings;
@@ -9,6 +11,7 @@ interface WidgetAppProps {
 }
 
 export const WidgetApp: React.FC<WidgetAppProps> = ({ settings, onUpdateSettings }) => {
+  const { level } = useObfuscation();
   const toggleSetting = (key: keyof WidgetSettings) => {
     onUpdateSettings({
       ...settings,
@@ -26,8 +29,8 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({ settings, onUpdateSettings
               <Clock size={24} />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-tighter uppercase italic">Widget Settings</h2>
-              <p className="text-zinc-500 text-sm font-medium">Customize your desktop clock widget experience.</p>
+              <h2 className="text-3xl font-black tracking-tighter uppercase italic">{obfuscate('Widget Settings', level)}</h2>
+              <p className="text-zinc-500 text-sm font-medium">{obfuscate('Customize your desktop clock widget experience.', level)}</p>
             </div>
           </div>
         </div>

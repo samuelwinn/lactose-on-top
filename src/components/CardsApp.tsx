@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Layers, Sparkles, Clock, Trophy, Package, Search, AlertCircle, Loader2, Coins, X } from 'lucide-react';
 import { ALL_CARDS, RARITIES, Card, Rarity } from '../constants/cards';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 // No Firebase usage needed for local-only app
 
 interface UserData {
@@ -11,6 +13,7 @@ interface UserData {
 }
 
 export const CardsApp: React.FC = () => {
+  const { level } = useObfuscation();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [pulling, setPulling] = useState(false);
@@ -134,10 +137,10 @@ export const CardsApp: React.FC = () => {
       {/* Content */}
       <div className="relative h-full p-4 flex flex-col justify-between">
         <div className="flex justify-between items-start">
-          <span className="text-[10px] font-black uppercase tracking-tighter opacity-50 text-white">LACTOSE TCG</span>
+          <span className="text-[10px] font-black uppercase tracking-tighter opacity-50 text-white">{obfuscate('LACTOSE TCG', level)}</span>
           {count !== undefined && (
             <div className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white">
-              x{count}
+              x{obfuscate(String(count), level)}
             </div>
           )}
         </div>
@@ -146,8 +149,8 @@ export const CardsApp: React.FC = () => {
           <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5 backdrop-blur-sm border border-white/10 mb-2">
              <Trophy size={24} style={{ color: card.color }} />
           </div>
-          <h3 className="font-black text-sm uppercase tracking-tighter leading-tight text-white">{card.name}</h3>
-          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: card.color }}>{card.rarity}</span>
+          <h3 className="font-black text-sm uppercase tracking-tighter leading-tight text-white">{obfuscate(card.name, level)}</h3>
+          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: card.color }}>{obfuscate(card.rarity, level)}</span>
         </div>
 
         <div className="h-1 bg-white/10 rounded-full overflow-hidden">

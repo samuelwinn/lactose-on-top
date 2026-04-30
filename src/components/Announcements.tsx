@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, ShieldAlert, Zap, Calendar, Star, ExternalLink, ChevronRight, Bell, Sparkles, ShoppingBag, Pickaxe, Terminal, Clock, Info, Book, Layers, FileText, PenTool, Headset, Music } from 'lucide-react';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface AnnouncementsProps {
   isModal?: boolean;
@@ -10,6 +12,7 @@ interface AnnouncementsProps {
 }
 
 export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, isOpen = true, onClose, onShowMore }) => {
+  const { level } = useObfuscation();
   const updates = [
     {
       title: "DISCORD",
@@ -52,7 +55,7 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
             <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-white shadow-inner">
               <Zap size={20} fill="currentColor" className="text-white" />
             </div>
-            <h2 className="text-xl font-black tracking-tighter uppercase italic text-white">ANNOUNCEMENT</h2>
+            <h2 className="text-xl font-black tracking-tighter uppercase italic text-white">{obfuscate('ANNOUNCEMENT', level)}</h2>
           </div>
 
           <div className="space-y-6 mb-10 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
@@ -63,11 +66,11 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                    {update.title}
+                    {obfuscate(update.title, level)}
                     {update.link && <ExternalLink size={12} className="opacity-0 group-hover:opacity-50 transition-opacity" />}
                   </h3>
                   <p className="text-[13px] text-zinc-400 leading-relaxed font-medium">
-                    {update.description}
+                    {obfuscate(update.description, level)}
                   </p>
                 </div>
               </div>
@@ -79,13 +82,13 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
               onClick={onShowMore}
               className="px-5 py-2.5 bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 text-sm font-bold rounded-xl transition-all border border-white/5"
             >
-              Show more
+              {obfuscate('Show more', level)}
             </button>
             <button
               onClick={onClose}
               className="px-8 py-2.5 bg-[#2d333d] hover:bg-[#363d49] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-black/20"
             >
-              Continue
+              {obfuscate('Continue', level)}
             </button>
           </div>
         </div>

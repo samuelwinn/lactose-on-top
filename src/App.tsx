@@ -16,7 +16,8 @@ import { PaintApp } from './components/PaintApp';
 import { LoFiApp } from './components/LoFiApp';
 import { CloakSplashScreen } from './components/CloakSplashScreen';
 import { BootScreen } from './components/BootScreen';
-import { normalizeTitle } from './constants';
+import { normalizeTitle, obfuscate } from './constants';
+import { useObfuscation } from './context/ObfuscationContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Pickaxe, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star } from 'lucide-react';
 import { Game, WidgetSettings } from './types';
@@ -27,7 +28,8 @@ const GameCard: React.FC<{
   onSelect: (game: Game) => void;
   onToggleFavorite: (e: React.MouseEvent, gameName: string) => void;
   hideFavorite?: boolean;
-}> = ({ game, isFavorite, onSelect, onToggleFavorite, hideFavorite }) => (
+  obfuscationLevel: number;
+}> = ({ game, isFavorite, onSelect, onToggleFavorite, hideFavorite, obfuscationLevel }) => (
   <div
     onClick={() => onSelect(game)}
     className="group relative flex items-center gap-4 p-4 bg-zinc-900/50 hover:bg-zinc-800 border border-white/5 rounded-2xl transition-all text-left overflow-hidden cursor-pointer"
@@ -45,14 +47,14 @@ const GameCard: React.FC<{
       className="w-12 h-12 flex-shrink-0 bg-zinc-950 rounded-xl flex items-center justify-center text-xl font-black border border-white/5 group-hover:scale-110 transition-transform"
       style={{ color: 'var(--primary)' }}
     >
-      {game.name?.charAt(0).toUpperCase() || '?'}
+      {obfuscate(game.name?.charAt(0).toUpperCase() || '?', obfuscationLevel)}
     </div>
     <div className="flex-1 min-w-0">
       <div className="text-sm font-bold truncate transition-colors group-hover:opacity-80" style={{ color: 'var(--primary)' }}>
-        {normalizeTitle(game.name || 'Unknown Game')}
+        {obfuscate(normalizeTitle(game.name || 'Unknown Game'), obfuscationLevel)}
       </div>
       <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-        {game.html?.includes('.html') ? 'HTML5' : 'JS'} • READY
+        {obfuscate(game.html?.includes('.html') ? 'HTML5' : 'JS', obfuscationLevel)} • {obfuscate('READY', obfuscationLevel)}
       </div>
     </div>
     <div className="flex items-center gap-2 absolute right-4 transition-all">
@@ -80,7 +82,8 @@ const DesktopIcon: React.FC<{
   label: string;
   onClick: () => void;
   hasWallpaper: boolean;
-}> = ({ icon, label, onClick, hasWallpaper }) => (
+  obfuscationLevel: number;
+}> = ({ icon, label, onClick, hasWallpaper, obfuscationLevel }) => (
   <button
     onClick={onClick}
     className="flex flex-col items-center gap-2 group w-20"
@@ -95,26 +98,30 @@ const DesktopIcon: React.FC<{
     <span className={`text-[10px] font-bold uppercase tracking-widest group-hover:text-white transition-colors text-center leading-tight ${
       hasWallpaper ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]' : 'text-zinc-500'
     }`}>
-      {label}
+      {obfuscate(label, obfuscationLevel)}
     </span>
   </button>
 );
 
-export const WindowHeader: React.FC<{ title: string; onClose: () => void }> = ({ title, onClose }) => (
-  <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-30">
-    <div className="flex items-center gap-3">
-      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">{title}</span>
+export const WindowHeader: React.FC<{ title: string; onClose: () => void }> = ({ title, onClose }) => {
+  const { level } = useObfuscation();
+  return (
+    <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-30">
+      <div className="flex items-center gap-3">
+        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">{obfuscate(title, level)}</span>
+      </div>
+      <button 
+        onClick={onClose}
+        className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-all"
+      >
+        <X size={16} />
+      </button>
     </div>
-    <button 
-      onClick={onClose}
-      className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-all"
-    >
-      <X size={16} />
-    </button>
-  </div>
-);
+  );
+};
 
 export default function App() {
+  const { level: textObfuscationLevel, setLevel: setTextObfuscationLevel } = useObfuscation();
   const [sessionStartTime] = useState(new Date());
   const [notifications, setNotifications] = useState<{ id: string; message: string; type: string }[]>([]);
   const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'minecraft' | 'appstore' | 'terminal' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'fnf' | 'widget'>('desktop');
@@ -671,8 +678,8 @@ export default function App() {
               <Sparkles size={14} style={{ color: 'var(--primary)' }} />
             </div>
             <div className="flex-1">
-              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">System Notification</div>
-              <div className="text-xs font-medium leading-relaxed">{n.message}</div>
+              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{obfuscate('System Notification', textObfuscationLevel)}</div>
+              <div className="text-xs font-medium leading-relaxed">{obfuscate(n.message, textObfuscationLevel)}</div>
             </div>
           </motion.div>
         ))}
@@ -700,114 +707,133 @@ export default function App() {
                   label="Arcade" 
                   onClick={() => setView('games')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Globe size={32} />} 
                   label="Other Sites" 
                   onClick={() => setView('othersites')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Code2 size={32} />} 
                   label="HTML" 
                   onClick={() => setView('html')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Palette size={32} />} 
                   label="Theme" 
                   onClick={() => setView('theme')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Shield size={32} />} 
                   label="Security" 
                   onClick={() => setView('security')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Info size={32} />} 
                   label="About" 
                   onClick={() => setView('about')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<CalculatorIcon size={32} />} 
                   label="Calculator" 
                   onClick={() => setView('calculator')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Bell size={32} />} 
                   label="Updates" 
                   onClick={() => setView('announcements')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Heart size={32} />} 
                   label="Tomodachi" 
                   onClick={() => setView('tomodachi')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Clock size={32} />} 
                   label="Clock" 
                   onClick={() => setView('clock')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Pickaxe size={32} />} 
                   label="Minecraft" 
                   onClick={() => setView('minecraft')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Music size={32} />} 
                   label="FNF" 
                   onClick={() => setView('fnf')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<TerminalIcon size={32} />} 
                   label="Super Mushroom" 
                   onClick={() => setView('terminal')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Book size={32} />} 
                   label="Verse" 
                   onClick={() => setView('verse')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Layers size={32} />} 
                   label="Cards" 
                   onClick={() => setView('cards')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<FileText size={32} />} 
                   label="Game Notes" 
                   onClick={() => setView('gamenotes')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<PenTool size={32} />} 
                   label="Paint" 
                   onClick={() => setView('paint')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<Headset size={32} />} 
                   label="Lo-Fi" 
                   onClick={() => setView('lofi')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
                 <DesktopIcon 
                   icon={<ShoppingBag size={32} />} 
                   label="App Store" 
                   onClick={() => setView('appstore')} 
                   hasWallpaper={!!wallpaper}
+                  obfuscationLevel={textObfuscationLevel}
                 />
               </div>
 
@@ -850,6 +876,7 @@ export default function App() {
                         onSelect={handleGameSelect} 
                         onToggleFavorite={() => {}} 
                         hideFavorite={true}
+                        obfuscationLevel={textObfuscationLevel}
                       />
                     ))}
                   </div>
@@ -912,6 +939,7 @@ export default function App() {
                             isFavorite={true} 
                             onSelect={handleGameSelect} 
                             onToggleFavorite={toggleFavorite} 
+                            obfuscationLevel={textObfuscationLevel}
                           />
                         ))}
                       </div>
@@ -934,6 +962,7 @@ export default function App() {
                           isFavorite={false} 
                           onSelect={handleGameSelect} 
                           onToggleFavorite={toggleFavorite} 
+                          obfuscationLevel={textObfuscationLevel}
                         />
                       ))}
                     </div>
@@ -1066,6 +1095,7 @@ export default function App() {
                             isFavorite={true} 
                             onSelect={handleGameSelect} 
                             onToggleFavorite={toggleFavorite} 
+                            obfuscationLevel={textObfuscationLevel}
                           />
                         ))}
                       </div>
@@ -1088,6 +1118,7 @@ export default function App() {
                           isFavorite={favorites.includes(game.name || '')} 
                           onSelect={handleGameSelect} 
                           onToggleFavorite={toggleFavorite} 
+                          obfuscationLevel={textObfuscationLevel}
                         />
                       ))}
                     </div>
@@ -1307,7 +1338,7 @@ export default function App() {
                 <div className="text-center mb-16">
                 <h2 className="text-4xl font-black mb-4 tracking-tighter uppercase italic">Security</h2>
                 <p className="text-zinc-500 max-w-2xl mx-auto text-sm">
-                  Configure safety features and stealth modes.
+                  {obfuscate('Configure safety features and stealth modes.', textObfuscationLevel)}
                 </p>
               </div>
 
@@ -1382,6 +1413,45 @@ export default function App() {
                         <p className="text-[10px] text-zinc-600 italic">
                           This is the site you'll be whisked away to when the panic key is pressed.
                         </p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Text Obfuscation Section */}
+                <section>
+                  <div className="flex items-center gap-4 mb-8">
+                    <Sparkles size={20} style={{ color: 'var(--primary)' }} />
+                    <h3 className="text-xl font-black tracking-tighter uppercase italic">Filter Bypass</h3>
+                    <div className="h-px flex-1 bg-white/5" />
+                  </div>
+                  <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">Homoglyph Obfuscation</h4>
+                        <p className="text-[10px] text-zinc-500 italic mb-2">Replace characters with lookalikes to bypass screen monitoring and AI filters.</p>
+                      </div>
+                      <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-white/5">
+                        {[
+                          { l: 1, n: 'None' },
+                          { l: 2, n: 'Normal (Default)' },
+                          { l: 3, n: 'High' }
+                        ].map((level) => (
+                          <button
+                            key={level.l}
+                            onClick={() => {
+                              setTextObfuscationLevel(level.l);
+                              localStorage.setItem('textObfuscationLevel', String(level.l));
+                            }}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                              textObfuscationLevel === level.l 
+                                ? 'bg-white text-black shadow-lg' 
+                                : 'text-zinc-500 hover:text-white'
+                            }`}
+                          >
+                            {level.n}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>

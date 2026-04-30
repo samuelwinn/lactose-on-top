@@ -1,7 +1,10 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 export const BootScreen: React.FC = () => {
+  const { level } = useObfuscation();
   const letters = [
     { char: 'L', fromTop: true },
     { char: 'A', fromTop: false },
@@ -35,7 +38,7 @@ export const BootScreen: React.FC = () => {
               filter: 'drop-shadow(0 0 10px var(--primary))'
             }}
           >
-            {item.char}
+            {obfuscate(item.char, level)}
           </motion.span>
         ))}
       </div>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ShoppingBag, ExternalLink, Plus } from 'lucide-react';
-
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 import { Game } from '../types';
 
 interface AppStoreProps {
@@ -10,6 +11,7 @@ interface AppStoreProps {
 }
 
 export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
+  const { level } = useObfuscation();
   const extraApps: Game[] = [
     {
       name: "WIDGET",
@@ -52,10 +54,10 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
               <div className="text-center md:text-left space-y-4 max-w-lg">
                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic leading-none">
-                  Have An App You Want To Add?
+                  {obfuscate('Have An App You Want To Add?', level)}
                 </h1>
                 <p className="text-white/80 text-sm font-medium leading-relaxed">
-                  Submit your work on this Google Form!
+                  {obfuscate('Submit your work on this Google Form!', level)}
                 </p>
                 <div className="pt-4">
                   <a 
@@ -64,7 +66,7 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl"
                   >
-                    Submit Work
+                    {obfuscate('Submit Work', level)}
                     <ExternalLink size={18} />
                   </a>
                 </div>
@@ -100,7 +102,7 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
         {/* Extra Apps List */}
         <section className="px-8 pb-16">
           <div className="flex items-center gap-4 mb-8">
-            <h3 className="text-xl font-black tracking-tighter uppercase italic">EXTRA APPS</h3>
+            <h3 className="text-xl font-black tracking-tighter uppercase italic">{obfuscate('EXTRA APPS', level)}</h3>
             <div className="h-px flex-1 bg-white/5" />
           </div>
 
@@ -112,11 +114,11 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
                 className="flex items-center gap-5 p-5 bg-zinc-900/30 border border-white/5 rounded-[1.5rem] hover:bg-zinc-900/50 transition-all group cursor-pointer"
               >
                 <div className="w-14 h-14 bg-zinc-950 border border-white/5 rounded-2xl flex items-center justify-center text-xl font-black group-hover:scale-105 transition-transform" style={{ color: 'var(--primary)' }}>
-                  {app.name.charAt(0)}
+                  {obfuscate(app.name.charAt(0), level)}
                 </div>
                 <div>
-                  <h5 className="font-bold text-white text-sm tracking-tight">{app.name}</h5>
-                  <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">{app.subtitle || "Baycoln99"}</p>
+                  <h5 className="font-bold text-white text-sm tracking-tight">{obfuscate(app.name, level)}</h5>
+                  <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">{obfuscate(app.subtitle || "Baycoln99", level)}</p>
                 </div>
               </div>
             ))}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Terminal as TerminalIcon, Command, ChevronRight, X, Sparkles } from 'lucide-react';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface SuperMushroomProps {
   onClose: () => void;
@@ -10,6 +12,7 @@ interface SuperMushroomProps {
 }
 
 export const SuperMushroom: React.FC<SuperMushroomProps> = ({ onClose, onOpenApp, sessionStartTime, onAlert }) => {
+  const { level } = useObfuscation();
   const [history, setHistory] = useState<{ type: 'input' | 'output'; text: string; isError?: boolean; isMatrix?: boolean; isDripping?: boolean }[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isOverridden, setIsOverridden] = useState(false);
@@ -195,7 +198,7 @@ export const SuperMushroom: React.FC<SuperMushroomProps> = ({ onClose, onOpenApp
               {item.type === 'input' && (
                 <span className={`${isOverridden ? 'text-green-800' : 'text-zinc-700'} mr-2`}>$</span>
               )}
-              {item.text}
+              {obfuscate(item.text, level)}
             </motion.div>
           ))}
         </AnimatePresence>

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Timer, AlarmClock, StopCircle, Play, Pause, RotateCcw, Plus, Trash2, Bell, X, Check } from 'lucide-react';
 import { WindowHeader } from '../App';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 export interface Alarm {
   id: string;
@@ -49,6 +51,7 @@ export const ClockApp: React.FC<ClockAppProps> = ({
   activeAlarmLabel,
   setActiveAlarmLabel
 }) => {
+  const { level } = useObfuscation();
   const [activeTab, setActiveTab] = useState<'stopwatch' | 'timer' | 'alarm'>('stopwatch');
 
   // swTime and swRunning are now passed as props, logic handled in App.tsx
@@ -121,7 +124,7 @@ export const ClockApp: React.FC<ClockAppProps> = ({
             }`}
           >
             {tab.icon}
-            {tab.label}
+            {obfuscate(tab.label, level)}
           </button>
         ))}
       </div>
@@ -256,7 +259,7 @@ export const ClockApp: React.FC<ClockAppProps> = ({
               className="max-w-md mx-auto w-full space-y-6"
             >
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-black tracking-tighter uppercase italic">Alarms</h3>
+                <h3 className="text-2xl font-black tracking-tighter uppercase italic">{obfuscate('Alarms', level)}</h3>
                 <button
                   onClick={() => setShowAddAlarm(true)}
                   className="p-3 bg-zinc-900 border border-white/10 rounded-xl text-[var(--primary)] hover:bg-zinc-800 transition-all"

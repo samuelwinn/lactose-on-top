@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, Music, CassetteTape, Radio, Disc3 } from 'lucide-react';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface Track {
   title: string;
@@ -73,6 +75,7 @@ const LOFI_TRACKS: Track[] = [
 ];
 
 export const LoFiApp: React.FC = () => {
+  const { level } = useObfuscation();
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
@@ -135,7 +138,7 @@ export const LoFiApp: React.FC = () => {
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
-              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter leading-none mb-2">{currentTrack.title}</h3>
+              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter leading-none mb-2">{obfuscate(currentTrack.title, level)}</h3>
             </div>
           </div>
         </div>
@@ -145,8 +148,8 @@ export const LoFiApp: React.FC = () => {
           {/* Progress Slider */}
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-black text-zinc-500 italic uppercase">
-              <span>Frequency</span>
-              <span className="tabular-nums">{Math.floor(progress)}%</span>
+              <span>{obfuscate('Frequency', level)}</span>
+              <span className="tabular-nums">{obfuscate(String(Math.floor(progress)), level)}%</span>
             </div>
             <div className="relative h-1 bg-zinc-800 rounded-full overflow-hidden">
                <motion.div 

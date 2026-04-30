@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Shield, Lock, KeyRound, ArrowRight } from 'lucide-react';
+import { obfuscate } from '../constants';
+import { useObfuscation } from '../context/ObfuscationContext';
 
 interface PasscodeModalProps {
   mode: 'set' | 'enter';
@@ -10,6 +12,7 @@ interface PasscodeModalProps {
 }
 
 export const PasscodeModal: React.FC<PasscodeModalProps> = ({ mode, correctPasscode, onComplete, onPanic }) => {
+  const { level } = useObfuscation();
   const [digits, setDigits] = useState<string[]>(['', '', '']);
   const [error, setError] = useState(false);
   const [firstPasscode, setFirstPasscode] = useState<string | null>(null);
@@ -127,13 +130,13 @@ export const PasscodeModal: React.FC<PasscodeModalProps> = ({ mode, correctPassc
 
           <h2 className="text-3xl font-black mb-2 tracking-tighter uppercase italic text-white">
             {mode === 'set' 
-              ? (isConfirming ? 'Confirm Passcode' : 'Create Passcode') 
-              : 'System Locked'}
+              ? (isConfirming ? obfuscate('Confirm Passcode', level) : obfuscate('Create Passcode', level)) 
+              : obfuscate('System Locked', level)}
           </h2>
           <p className="text-zinc-500 text-sm mb-10 font-medium">
             {mode === 'set' 
-              ? (isConfirming ? 'Re-enter your 3-digit code.' : <>Set a 3-digit code for this session. <span className="font-bold text-zinc-400">(911 is reserved)</span></>) 
-              : 'Enter your 3-digit code to continue.'}
+              ? (isConfirming ? obfuscate('Re-enter your 3-digit code.', level) : <>{obfuscate('Set a 3-digit code for this session.', level)} <span className="font-bold text-zinc-400">({obfuscate('911 is reserved', level)})</span></>) 
+              : obfuscate('Enter your 3-digit code to continue.', level)}
           </p>
 
           <div className="flex justify-center gap-4 mb-10">
