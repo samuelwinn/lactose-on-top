@@ -6,8 +6,4 @@ export interface Game {
 
 export interface WidgetSettings {
   enabled: boolean;
-  showCards: boolean;
-  showTomodachi: boolean;
-  showAlarms: boolean;
-  showFavorites: boolean;
 }

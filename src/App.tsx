@@ -146,11 +146,7 @@ export default function App() {
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings>(() => {
     const saved = localStorage.getItem('widget_settings');
     return saved ? JSON.parse(saved) : {
-      enabled: true,
-      showCards: true,
-      showTomodachi: true,
-      showAlarms: true,
-      showFavorites: true
+      enabled: true
     };
   });
 
@@ -598,8 +594,6 @@ export default function App() {
     }, 5000);
   };
 
-  const [isHoveringClock, setIsHoveringClock] = useState(false);
-
   return (
     <>
       <AnimatePresence mode="wait">
@@ -657,134 +651,8 @@ export default function App() {
           >
       {/* Floating Clock */}
       {widgetSettings.enabled && (
-        <div 
-          className="fixed bottom-6 right-8 z-50"
-          onMouseEnter={() => setIsHoveringClock(true)}
-          onMouseLeave={() => setIsHoveringClock(false)}
-        >
-          <AnimatePresence>
-            {isHoveringClock && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: -8, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute bottom-full right-0 w-64 p-4 bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl origin-bottom-right pointer-events-auto"
-              >
-                {/* Bridge to prevent mouse leave during movement */}
-                <div className="absolute top-full left-0 right-0 h-4 bg-transparent" />
-                <div className="space-y-4">
-                  {/* Cards Status */}
-                  {widgetSettings.showCards && (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">
-                        <Layers size={10} />
-                        CARDS STATUS
-                      </div>
-                      <div className="text-[10px] font-bold">
-                        {cardsCooldown > 0 ? (
-                          <span className="text-zinc-400">NEXT PULL: <span className="text-white font-mono">{Math.ceil(cardsCooldown / 1000)}s</span></span>
-                        ) : (
-                          <span className="text-emerald-400 animate-pulse">GENERATOR READY</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tomodachi Status */}
-                  {widgetSettings.showTomodachi && petStats && (
-                    <div className={`space-y-1.5 pt-3 ${widgetSettings.showCards ? 'border-t border-white/5' : ''}`}>
-                      <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">
-                        <Heart size={10} />
-                        {petStats.name.toUpperCase()} STATS
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: 'HNG', val: petStats.hunger },
-                          { label: 'HPY', val: petStats.happiness },
-                          { label: 'EGY', val: petStats.energy }
-                        ].map(stat => (
-                          <div key={stat.label}>
-                            <div className="text-[8px] text-zinc-600 mb-1">{stat.label}</div>
-                            <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full ${stat.val > 70 ? 'bg-emerald-500' : stat.val > 30 ? 'bg-amber-500' : 'bg-red-500'}`} 
-                                style={{ width: `${stat.val}%` }} 
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Alarms & Stopwatches */}
-                  {widgetSettings.showAlarms && (
-                    <div className={`space-y-1.5 pt-3 ${(widgetSettings.showCards || widgetSettings.showTomodachi) ? 'border-t border-white/5' : ''}`}>
-                      <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">
-                        <Clock size={10} />
-                        ACTIVE ALARMS/TIMERS
-                      </div>
-                      <div className="space-y-2">
-                        {swRunning && (
-                          <div className="flex items-center justify-between text-[10px] font-bold">
-                            <span className="text-zinc-500">STOPWATCH</span>
-                            <span className="text-white font-mono">
-                              {Math.floor(swTime / 60000).toString().padStart(2, '0')}:
-                              {Math.floor((swTime % 60000) / 1000).toString().padStart(2, '0')}
-                            </span>
-                          </div>
-                        )}
-                        {timerRunning && (
-                          <div className="flex items-center justify-between text-[10px] font-bold">
-                            <span className="text-zinc-500">TIMER</span>
-                            <span className="text-amber-400 font-mono">
-                              {Math.floor(timerRemaining / 60).toString().padStart(2, '0')}:
-                              {(timerRemaining % 60).toString().padStart(2, '0')}
-                            </span>
-                          </div>
-                        )}
-                        {alarms.filter(a => a.enabled).map(alarm => (
-                          <div key={alarm.id} className="flex items-center justify-between text-[10px] font-bold">
-                            <span className="text-zinc-500 truncate mr-2">{alarm.label.toUpperCase()}</span>
-                            <span className="text-white font-mono">{alarm.time}</span>
-                          </div>
-                        ))}
-                        {!swRunning && !timerRunning && !alarms.some(a => a.enabled) && (
-                          <div className="text-[10px] font-bold text-zinc-600 italic">NO ACTIVE PROCESSES</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Favorited Games */}
-                  {widgetSettings.showFavorites && favoritedGames.length > 0 && (
-                    <div className={`space-y-1.5 pt-3 ${(widgetSettings.showCards || widgetSettings.showTomodachi || widgetSettings.showAlarms) ? 'border-t border-white/5' : ''}`}>
-                      <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">
-                        <Star size={10} />
-                        FAVORITES
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {favoritedGames.slice(0, 4).map((game) => (
-                          <button
-                            key={game.name}
-                            onClick={() => handleGameSelect(game)}
-                            className="p-2 bg-zinc-900 hover:bg-zinc-800 border border-white/5 rounded-xl text-left transition-colors group/fav"
-                          >
-                            <div className="text-[9px] font-bold text-zinc-400 truncate group-hover/fav:text-[var(--primary)] transition-colors">
-                              {normalizeTitle(game.name)}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="px-4 py-2 bg-zinc-950/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl text-[10px] font-mono font-bold text-zinc-400 tabular-nums cursor-help hover:text-white transition-colors">
+        <div className="fixed bottom-6 right-8 z-50">
+          <div className="px-4 py-2 bg-zinc-950/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl text-[10px] font-mono font-bold text-zinc-400 tabular-nums hover:text-white transition-colors">
             {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
           </div>
         </div>

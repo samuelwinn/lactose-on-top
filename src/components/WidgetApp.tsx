@@ -57,52 +57,10 @@ export const WidgetApp: React.FC<WidgetAppProps> = ({ settings, onUpdateSettings
           </div>
         </div>
 
-        {/* Visibility Options */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <h3 className="text-sm font-black tracking-widest uppercase text-zinc-500 italic">Hover Visibility</h3>
-            <div className="h-px flex-1 bg-white/5" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { id: 'showCards', label: 'Cards Status', icon: <Layers size={18} />, color: 'emerald' },
-              { id: 'showTomodachi', label: 'Tomodachi Stats', icon: <Heart size={18} />, color: 'rose' },
-              { id: 'showAlarms', label: 'Alarms & Timers', icon: <Bell size={18} />, color: 'amber' },
-              { id: 'showFavorites', label: 'Favorited Games', icon: <Star size={18} />, color: 'indigo' },
-            ].map((option) => (
-              <div
-                key={option.id}
-                onClick={() => settings.enabled && toggleSetting(option.id as keyof WidgetSettings)}
-                className={`p-5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                  !settings.enabled 
-                    ? 'opacity-50 cursor-not-allowed bg-zinc-900/20 border-white/5 text-zinc-700' 
-                    : settings[option.id as keyof WidgetSettings]
-                      ? 'bg-zinc-900 border-white/20 text-white' 
-                      : 'bg-zinc-900/30 border-white/5 text-zinc-600 hover:border-white/10'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    settings[option.id as keyof WidgetSettings] ? 'bg-[var(--primary-shadow)] text-[var(--primary)]' : 'bg-zinc-950 text-zinc-800'
-                  }`}>
-                    {option.icon}
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-widest">{option.label}</span>
-                </div>
-                {settings.enabled && (
-                  <div className={`w-2 h-2 rounded-full ${settings[option.id as keyof WidgetSettings] ? 'bg-[var(--primary)] shadow-[0_0_10px_var(--primary)]' : 'bg-zinc-800'}`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Info */}
         <div className="p-6 bg-zinc-900/30 border border-white/5 rounded-3xl">
           <p className="text-[10px] font-medium text-zinc-500 leading-relaxed uppercase tracking-widest text-center">
-            The clock widget is a experimental feature. <br />
-            More options coming soon.
+            The clock widget shows the current time in the bottom right corner of your screen.
           </p>
         </div>
       </div>
