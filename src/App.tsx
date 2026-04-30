@@ -142,6 +142,7 @@ export default function App() {
   const [panicUrl, setPanicUrl] = useState<string>(localStorage.getItem('panicUrl') || 'https://google.com');
   const [panicEnabled, setPanicEnabled] = useState<boolean>(localStorage.getItem('panicEnabled') !== 'false');
   const [cloak, setCloak] = useState<string>(localStorage.getItem('cloak') || 'none');
+  const [closeProtection, setCloseProtection] = useState<boolean>(localStorage.getItem('closeProtection') === 'true');
   const [passcodeEnabled, setPasscodeEnabled] = useState<boolean>(localStorage.getItem('passcodeEnabled') === 'true');
   const [sessionPasscode, setSessionPasscode] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
@@ -251,6 +252,17 @@ export default function App() {
       if (interval) clearInterval(interval);
     };
   }, [swRunning]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (closeProtection) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [closeProtection]);
 
 
   useEffect(() => {
@@ -1452,6 +1464,48 @@ export default function App() {
                             {level.n}
                           </button>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Close Protection Section */}
+                <section>
+                  <div className="flex items-center gap-4 mb-8">
+                    <X size={20} style={{ color: 'var(--primary)' }} />
+                    <h3 className="text-xl font-black tracking-tighter uppercase italic">Close Protection</h3>
+                    <div className="h-px flex-1 bg-white/5" />
+                  </div>
+                  <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">{obfuscate('Tab Lockout', textObfuscationLevel)}</h4>
+                        <p className="text-[10px] text-zinc-500 italic mb-2">Prevent teachers or anyone from closing the tab easily.</p>
+                        <p className="text-[10px] text-zinc-500 italic max-w-md">
+                          When enabled, the browser will ask "Are you sure you want to leave?" when anyone tries to close this tab.
+                          <span className="text-[var(--primary)] font-bold ml-1">Note: Browsers limit how many times this can show to prevent malicious loops, but this provides the maximum stealth protection.</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 bg-zinc-950 px-4 py-2 rounded-full border border-white/5">
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${closeProtection ? 'text-white' : 'text-zinc-500'}`}>
+                          {closeProtection ? 'Enabled' : 'Disabled'}
+                        </span>
+                        <button
+                          onClick={() => {
+                            const next = !closeProtection;
+                            setCloseProtection(next);
+                            localStorage.setItem('closeProtection', String(next));
+                          }}
+                          className={`relative w-10 h-5 rounded-full transition-all flex items-center px-0.5 ${
+                            closeProtection ? 'bg-zinc-700' : 'bg-zinc-950 border border-white/5'
+                          }`}
+                          style={closeProtection ? { backgroundColor: 'var(--primary)' } : {}}
+                        >
+                          <motion.div 
+                            animate={{ x: closeProtection ? 20 : 0 }}
+                            className="w-4 h-4 bg-white rounded-full shadow-lg"
+                          />
+                        </button>
                       </div>
                     </div>
                   </div>
