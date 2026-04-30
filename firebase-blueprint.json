@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "blockedUsers": { 
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of UIDs that this user has blocked"
+        },
+        "lastSeen": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "A conversation between two or more users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["dm", "group"] },
+        "participants": { 
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of UIDs in this chat"
+        },
+        "name": { "type": "string", "description": "Name for group chats" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "type", "participants"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A message within a chat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "chatId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "chatId", "senderId", "text", "timestamp"]
+    },
+    "TCGUser": {
+      "title": "TCGUser",
+      "description": "User card collection and pack timer",
+      "type": "object",
+      "properties": {
+        "collection": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Map of cardId to count"
+        },
+        "lastPackOpened": { "type": "string", "format": "date-time" },
+        "username": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/tcg_users/{uid}": {
+      "schema": "TCGUser",
+      "description": "TCG card collections"
+    },
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Chat sessions"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages within a chat"
+    }
+  }
+}

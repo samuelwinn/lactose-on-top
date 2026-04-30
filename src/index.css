@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --primary: #059669; /* emerald-600 */
+  --primary-hover: #10b981; /* emerald-500 */
+  --primary-shadow: rgba(6, 78, 59, 0.2);
+}
+
+[data-theme='blue'] {
+  --primary: #2563eb; /* blue-600 */
+  --primary-hover: #3b82f6; /* blue-500 */
+  --primary-shadow: rgba(30, 58, 138, 0.2);
+}
+
+[data-theme='green'] {
+  --primary: #dc2626; /* red-600 */
+  --primary-hover: #ef4444; /* red-500 */
+  --primary-shadow: rgba(127, 29, 29, 0.2);
+}
+
+[data-theme='amber'] {
+  --primary: #d97706; /* amber-600 */
+  --primary-hover: #f59e0b; /* amber-500 */
+  --primary-shadow: rgba(120, 53, 15, 0.2);
+}
+
+[data-theme='purple'] {
+  --primary: #9333ea; /* purple-600 */
+  --primary-hover: #a855f7; /* purple-500 */
+  --primary-shadow: rgba(88, 28, 135, 0.2);
+}
+
+[data-theme='pink'] {
+  --primary: #db2777; /* pink-600 */
+  --primary-hover: #ec4899; /* pink-500 */
+  --primary-shadow: rgba(131, 24, 67, 0.2);
+}
+
+[data-theme='cyan'] {
+  --primary: #0891b2; /* cyan-600 */
+  --primary-hover: #06b6d4; /* cyan-500 */
+  --primary-shadow: rgba(22, 78, 99, 0.2);
+}
+
+[data-theme='orange'] {
+  --primary: #ea580c; /* orange-600 */
+  --primary-hover: #f97316; /* orange-500 */
+  --primary-shadow: rgba(124, 45, 18, 0.2);
+}
+
+[data-theme='lime'] {
+  --primary: #65a30d; /* lime-600 */
+  --primary-hover: #84cc16; /* lime-500 */
+  --primary-shadow: rgba(54, 83, 20, 0.2);
+}
+
+[data-theme='slate'] {
+  --primary: #475569; /* slate-600 */
+  --primary-hover: #64748b; /* slate-500 */
+  --primary-shadow: rgba(30, 41, 59, 0.2);
+}
+
+@layer base {
+  body {
+    @apply bg-[#1a1a1a] text-white overflow-x-hidden;
+    background-image: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #1a1a1a 100%);
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .writing-vertical {
+    writing-mode: vertical-rl;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom SNES Cartridge Styles */
+.cartridge-container {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cartridge-spine {
+  background: linear-gradient(to bottom, #888, #666);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+}
+
+.cartridge-front {
+  background: #444;
+  border: 4px solid #333;
+}
+
+.shoebox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 2px;
+  padding: 20px;
+  background: #3d2b1f; /* Cardboard brown */
+  border: 8px solid #2d1b0f;
+  border-radius: 4px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ARG Terminal Glow */
+.terminal-glow {
+  text-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+  position: relative;
+}
+
+.terminal-glow::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+/* Dripping Blood Effect */
+.dripping-blood {
+  text-shadow: 
+    0 2px 0 #991b1b,
+    0 4px 0 #7f1d1d,
+    0 6px 4px rgba(0,0,0,0.5);
+  animation: drip 3s infinite ease-in-out;
+  position: relative;
+}
+
+@keyframes drip {
+  0%, 100% {
+    text-shadow: 
+      0 2px 0 #991b1b,
+      0 4px 0 #7f1d1d,
+      0 0 10px rgba(185, 28, 28, 0.8),
+      0 0 20px rgba(185, 28, 28, 0.4);
+    transform: translateY(0);
+  }
+  50% {
+    text-shadow: 
+      0 4px 0 #991b1b,
+      0 8px 2px #7f1d1d,
+      0 12px 10px rgba(153, 27, 27, 0.6),
+      0 0 15px rgba(185, 28, 28, 0.9);
+    transform: translateY(1px);
+  }
+}
