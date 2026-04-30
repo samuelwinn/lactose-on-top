@@ -554,26 +554,31 @@ export default function App() {
 
   const washHistory = (silent: boolean = false) => {
     setHistorySpoofing(true);
+    const originalTitle = document.title;
     const decoys = [
-      'Google Classroom',
-      'Google Docs',
-      'Wikipedia - Photosynthesis',
-      'Khan Academy - Algebra',
-      'Google Search - academic sources',
-      'Schoology - Dashboard',
-      'Canvas - My Courses',
-      'Google Drive - Shared with me',
-      'Library of Congress',
-      'Educational Resources - PDF'
+      { t: 'Google Classroom', p: '?authuser=0&hl=en&classroom_id=128374' },
+      { t: 'Google Docs - World History Essay', p: '?doc_id=1x9y2z_draft' },
+      { t: 'Wikipedia - Photosynthesis', p: '?wiki=Photosynthesis' },
+      { t: 'Khan Academy - Algebra 1', p: '?course=algebra_1' },
+      { t: 'Schoology | Learning Management System', p: '?schoology=home' },
+      { t: 'Canvas - Dashboard', p: '?canvas=dashboard' },
+      { t: 'Google Drive - Shared with me', p: '?drive=shared' },
+      { t: 'Library of Congress Catalog', p: '?loc=search_results' },
+      { t: 'Academic Resource PDF', p: '?res=pdf_view_772' },
+      { t: 'Google Search - academic sources', p: '?q=organic+chemistry+compounds' }
     ];
 
     try {
-      // Push 10 entries to bury the site in history
+      // Temporarily change title for each pushState so it reflects in browser history
       for (let i = 0; i < decoys.length; i++) {
-        window.history.pushState({ decoy: true }, decoys[i], `?v=${Math.random().toString(36).substring(7)}`);
+        document.title = decoys[i].t;
+        window.history.pushState({ decoy: true }, decoys[i].t, decoys[i].p);
       }
-      // Re-push the current state so the app continues normally
-      window.history.pushState({ main: true }, 'LACTOSE', window.location.pathname);
+      
+      // Restore the original title for the app
+      document.title = originalTitle;
+      window.history.pushState({ main: true }, originalTitle, window.location.pathname);
+      
       if (!silent) {
         addNotification('History washed! 10 decoy entries added to stack.', 'success');
       }
@@ -583,6 +588,7 @@ export default function App() {
         addNotification('History spoofing failed due to browser restrictions.', 'error');
       }
     } finally {
+      document.title = originalTitle;
       setTimeout(() => setHistorySpoofing(false), 2000);
     }
   };
