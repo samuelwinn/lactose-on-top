@@ -704,8 +704,8 @@ export default function App() {
               style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : {}}
             >
               {/* Bento Grid Layout */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-4 md:py-8 relative z-10">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-8 relative z-10 flex flex-col justify-center min-h-0">
+                <div className="w-full max-w-[1600px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 px-4 md:px-12">
                   {/* Clock & Date Card */}
                   <BentoCard 
                     className="lg:col-span-2 min-h-[220px]" 
