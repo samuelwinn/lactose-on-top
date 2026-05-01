@@ -14,11 +14,6 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
   const { level } = useObfuscation();
   const extraApps: Game[] = [
     {
-      name: "WIDGET",
-      html: "internal",
-      subtitle: "LACTOSE System"
-    },
-    {
       name: "Font Changer",
       html: "https://drive.google.com/file/d/1sW_O-WmizVGP-2zgdADO-XCFm00q4Gse/view?usp=sharing",
       subtitle: "TATO"
@@ -89,12 +84,12 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
         {/* Disclaimer Section */}
         <section className="px-8 pb-12">
           <div className="flex items-center gap-4 mb-6">
-            <h3 className="text-xl font-black tracking-tighter uppercase italic">Disclaimer</h3>
+            <h3 className="text-xl font-black tracking-tighter uppercase italic">{obfuscate('Disclaimer', level)}</h3>
             <div className="h-px flex-1 bg-white/5" />
           </div>
           <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6">
             <p className="text-zinc-500 text-sm font-medium leading-relaxed italic">
-              "The creator of LACTOSE, Orcaweesh, did not make any of these apps. They might not all work properly, and Orcaweesh can't do anything about it."
+              {obfuscate('"The creator of LACTOSE, Orcaweesh, did not make any of these apps. They might not all work properly, and Orcaweesh can\'t do anything about it."', level)}
             </p>
           </div>
         </section>

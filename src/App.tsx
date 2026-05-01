@@ -120,15 +120,35 @@ export const WindowHeader: React.FC<{ title: string; onClose: () => void }> = ({
   );
 };
 
+const BentoCard: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  hasWallpaper: boolean;
+}> = ({ children, className = '', onClick, hasWallpaper }) => (
+  <motion.div
+    whileHover={{ scale: onClick ? 1.01 : 1 }}
+    whileTap={{ scale: onClick ? 0.99 : 1 }}
+    onClick={onClick}
+    className={`relative overflow-hidden border p-6 flex flex-col justify-between transition-all rounded-[2rem] ${
+      onClick ? 'cursor-pointer' : ''
+    } ${
+      hasWallpaper 
+        ? 'bg-black/40 backdrop-blur-2xl border-white/20 text-white shadow-2xl' 
+        : 'bg-zinc-950/50 backdrop-blur-xl border-white/10 text-white shadow-xl'
+    } ${className}`}
+  >
+    {children}
+  </motion.div>
+);
+
 export default function App() {
   const { level: textObfuscationLevel, setLevel: setTextObfuscationLevel } = useObfuscation();
   const [sessionStartTime] = useState(new Date());
   const [notifications, setNotifications] = useState<{ id: string; message: string; type: string }[]>([]);
-  const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'minecraft' | 'appstore' | 'terminal' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'fnf' | 'widget'>('desktop');
+  const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'appstore' | 'terminal' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'widget'>('desktop');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [games, setGames] = useState<Game[]>([]);
-  const [minecraftGames, setMinecraftGames] = useState<Game[]>([]);
-  const [fnfGames, setFnfGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialDecoy, setIsInitialDecoy] = useState(true);
   const [isBooting, setIsBooting] = useState(true);
@@ -150,8 +170,6 @@ export default function App() {
   const [showAnnouncementModal, setShowAnnouncementModal] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDisclaimerDismissed, setIsDisclaimerDismissed] = useState(false);
-  const [historySpoofing, setHistorySpoofing] = useState(false);
-  const [autoHistorySpoof, setAutoHistorySpoof] = useState<boolean>(localStorage.getItem('autoHistorySpoof') !== 'false');
 
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings>(() => {
     const saved = localStorage.getItem('widget_settings');
@@ -265,18 +283,6 @@ export default function App() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [closeProtection]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (autoHistorySpoof) {
-      interval = setInterval(() => {
-        washHistory(true);
-      }, 10 * 60 * 1000); // 10 minutes
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoHistorySpoof]);
 
 
   useEffect(() => {
@@ -521,9 +527,8 @@ export default function App() {
           fnfRes.json()
         ]);
 
-        setGames(gamesData);
-        setMinecraftGames(minecraftData);
-        setFnfGames(fnfData);
+        const combined = [...gamesData, ...minecraftData, ...fnfData];
+        setGames(combined.sort((a, b) => normalizeTitle(a.name || '').localeCompare(normalizeTitle(b.name || ''))));
       } catch (error) {
         console.error('Failed to fetch games:', error);
       } finally {
@@ -549,47 +554,6 @@ export default function App() {
   const triggerPanic = () => {
     if (panicEnabled) {
       window.location.href = panicUrl.startsWith('http') ? panicUrl : `https://${panicUrl}`;
-    }
-  };
-
-  const washHistory = (silent: boolean = false) => {
-    setHistorySpoofing(true);
-    const originalTitle = document.title;
-    const decoys = [
-      { t: 'Google Classroom', p: '?authuser=0&hl=en&classroom_id=128374' },
-      { t: 'Google Docs - World History Essay', p: '?doc_id=1x9y2z_draft' },
-      { t: 'Wikipedia - Photosynthesis', p: '?wiki=Photosynthesis' },
-      { t: 'Khan Academy - Algebra 1', p: '?course=algebra_1' },
-      { t: 'Schoology | Learning Management System', p: '?schoology=home' },
-      { t: 'Canvas - Dashboard', p: '?canvas=dashboard' },
-      { t: 'Google Drive - Shared with me', p: '?drive=shared' },
-      { t: 'Library of Congress Catalog', p: '?loc=search_results' },
-      { t: 'Academic Resource PDF', p: '?res=pdf_view_772' },
-      { t: 'Google Search - academic sources', p: '?q=organic+chemistry+compounds' }
-    ];
-
-    try {
-      // Temporarily change title for each pushState so it reflects in browser history
-      for (let i = 0; i < decoys.length; i++) {
-        document.title = decoys[i].t;
-        window.history.pushState({ decoy: true }, decoys[i].t, decoys[i].p);
-      }
-      
-      // Restore the original title for the app
-      document.title = originalTitle;
-      window.history.pushState({ main: true }, originalTitle, window.location.pathname);
-      
-      if (!silent) {
-        addNotification('History washed! 10 decoy entries added to stack.', 'success');
-      }
-    } catch (e) {
-      console.error('History spoofing failed:', e);
-      if (!silent) {
-        addNotification('History spoofing failed due to browser restrictions.', 'error');
-      }
-    } finally {
-      document.title = originalTitle;
-      setTimeout(() => setHistorySpoofing(false), 2000);
     }
   };
 
@@ -625,34 +589,6 @@ export default function App() {
   const otherGames = useMemo(() => {
     return filteredGames.filter(game => game.name && !(favorites || []).includes(game.name));
   }, [filteredGames, favorites]);
-
-  const minecraftFilteredGames = useMemo(() => {
-    return minecraftGames.filter(game => 
-      game.name && game.name.toLowerCase().includes((searchQuery || '').toLowerCase())
-    ).sort((a, b) => normalizeTitle(a.name || '').localeCompare(normalizeTitle(b.name || '')));
-  }, [minecraftGames, searchQuery]);
-
-  const minecraftFavoritedGames = useMemo(() => {
-    return minecraftFilteredGames.filter(game => game.name && (favorites || []).includes(game.name));
-  }, [minecraftFilteredGames, favorites]);
-
-  const minecraftOtherGames = useMemo(() => {
-    return minecraftFilteredGames.filter(game => game.name && !(favorites || []).includes(game.name));
-  }, [minecraftFilteredGames, favorites]);
-
-  const fnfFilteredGames = useMemo(() => {
-    return fnfGames.filter(game => 
-      game.name && game.name.toLowerCase().includes((searchQuery || '').toLowerCase())
-    ).sort((a, b) => normalizeTitle(a.name || '').localeCompare(normalizeTitle(b.name || '')));
-  }, [fnfGames, searchQuery]);
-
-  const fnfFavoritedGames = useMemo(() => {
-    return fnfFilteredGames.filter(game => game.name && (favorites || []).includes(game.name));
-  }, [fnfFilteredGames, favorites]);
-
-  const fnfOtherGames = useMemo(() => {
-    return fnfFilteredGames.filter(game => game.name && !(favorites || []).includes(game.name));
-  }, [fnfFilteredGames, favorites]);
 
   const otherSites = useMemo(() => {
     return [
@@ -767,280 +703,204 @@ export default function App() {
               }`}
               style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : {}}
             >
-              {/* Desktop Icons Grid */}
-              <div className="grid grid-flow-col grid-rows-4 gap-8 w-fit">
-                <DesktopIcon 
-                  icon={<Gamepad2 size={32} />} 
-                  label="Arcade" 
-                  onClick={() => setView('games')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Globe size={32} />} 
-                  label="Other Sites" 
-                  onClick={() => setView('othersites')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Code2 size={32} />} 
-                  label="HTML" 
-                  onClick={() => setView('html')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Palette size={32} />} 
-                  label="Theme" 
-                  onClick={() => setView('theme')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Shield size={32} />} 
-                  label="Security" 
-                  onClick={() => setView('security')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Info size={32} />} 
-                  label="About" 
-                  onClick={() => setView('about')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<CalculatorIcon size={32} />} 
-                  label="Calculator" 
-                  onClick={() => setView('calculator')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Bell size={32} />} 
-                  label="Updates" 
-                  onClick={() => setView('announcements')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Heart size={32} />} 
-                  label="Tomodachi" 
-                  onClick={() => setView('tomodachi')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Clock size={32} />} 
-                  label="Clock" 
-                  onClick={() => setView('clock')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Pickaxe size={32} />} 
-                  label="Minecraft" 
-                  onClick={() => setView('minecraft')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Music size={32} />} 
-                  label="FNF" 
-                  onClick={() => setView('fnf')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<TerminalIcon size={32} />} 
-                  label="Super Mushroom" 
-                  onClick={() => setView('terminal')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Book size={32} />} 
-                  label="Verse" 
-                  onClick={() => setView('verse')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Layers size={32} />} 
-                  label="Cards" 
-                  onClick={() => setView('cards')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<FileText size={32} />} 
-                  label="Game Notes" 
-                  onClick={() => setView('gamenotes')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<PenTool size={32} />} 
-                  label="Paint" 
-                  onClick={() => setView('paint')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<Headset size={32} />} 
-                  label="Lo-Fi" 
-                  onClick={() => setView('lofi')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-                <DesktopIcon 
-                  icon={<ShoppingBag size={32} />} 
-                  label="App Store" 
-                  onClick={() => setView('appstore')} 
-                  hasWallpaper={!!wallpaper}
-                  obfuscationLevel={textObfuscationLevel}
-                />
-              </div>
-
-              {/* Central Branding */}
-              {!wallpaper && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-20">
-                  <div className="text-8xl md:text-[12rem] font-black tracking-tighter uppercase italic leading-none select-none" style={{ color: 'var(--primary)' }}>
-                    LACTOSE
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          ) : view === 'minecraft' ? (
-            <motion.div 
-              key="minecraft"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="h-full flex flex-col overflow-hidden"
-            >
-              <WindowHeader title="Minecraft" onClose={() => setView('desktop')} />
-              <div className="flex-1 overflow-y-auto p-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/10 pb-8">
-                  <div>
-                    <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-2">MINECRAFT</h1>
-                    <p className="text-zinc-500 text-sm font-medium leading-relaxed max-w-2xl italic">
-                      Minecraft wasn't made for browser, it may overheat your chromebook/device. I made it so that mouse is not required, but I would still recommend it.
-                    </p>
-                  </div>
-                </div>
-
-              <div className="space-y-12">
-                <section>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {minecraftFilteredGames.map((game) => (
-                      <GameCard 
-                        key={game.name} 
-                        game={game} 
-                        isFavorite={false} 
-                        onSelect={handleGameSelect} 
-                        onToggleFavorite={() => {}} 
-                        hideFavorite={true}
-                        obfuscationLevel={textObfuscationLevel}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                {minecraftFilteredGames.length === 0 && (
-                  <div className="text-zinc-600 italic py-20 text-center col-span-full">
-                    <div className="text-4xl mb-4">∅</div>
-                    No clients found for "{searchQuery}"
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-          ) : view === 'fnf' ? (
-            <motion.div 
-              key="fnf"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="h-full flex flex-col overflow-hidden"
-            >
-              <WindowHeader title="FNF" onClose={() => setView('desktop')} />
-              <div className="flex-1 overflow-y-auto p-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/10 pb-8">
-                  <div>
-                    <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-2">FNF</h1>
-                    <p className="text-zinc-500 text-sm font-medium leading-relaxed max-w-2xl italic">
-                      Step into the rhythm. Enjoy the best Friday Night Funkin' mods right here in LACTOSE.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-full md:w-80">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search mods..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors text-sm"
-                        style={{ borderBottom: '2px solid var(--primary)' }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-12">
-                  {(fnfFavoritedGames.length > 0) && (
-                    <section>
-                      <div className="flex items-center gap-4 mb-8">
-                        <Heart size={20} style={{ color: 'var(--primary)' }} />
-                        <h3 className="text-xl font-black tracking-tighter uppercase italic">Favorites</h3>
-                        <div className="h-px flex-1 bg-white/5" />
+              {/* Bento Grid Layout */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-4 md:py-8 relative z-10">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                  {/* Clock & Date Card */}
+                  <BentoCard 
+                    className="lg:col-span-2 min-h-[220px]" 
+                    hasWallpaper={!!wallpaper}
+                    onClick={() => setView('clock')}
+                  >
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="flex justify-between items-start">
+                        <div className="p-3 bg-white/5 rounded-2xl">
+                          <Clock size={24} style={{ color: 'var(--primary)' }} />
+                        </div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">{obfuscate('Clock', textObfuscationLevel)}</div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {fnfFavoritedGames.map((game) => (
-                          <GameCard 
-                            key={game.name} 
-                            game={game} 
-                            isFavorite={true} 
-                            onSelect={handleGameSelect} 
-                            onToggleFavorite={toggleFavorite} 
-                            obfuscationLevel={textObfuscationLevel}
-                          />
+                      <div>
+                        <div className="text-6xl md:text-7xl font-black tracking-tighter tabular-nums mb-2 leading-none">
+                          {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
+                        </div>
+                        <div className="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                          {obfuscate(currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }), textObfuscationLevel)}
+                        </div>
+                      </div>
+                    </div>
+                  </BentoCard>                  {/* Arcade Quick Launch */}
+                  <BentoCard 
+                    className="min-h-[220px]" 
+                    hasWallpaper={!!wallpaper}
+                    onClick={() => setView('games')}
+                  >
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="p-3 bg-white/5 w-fit rounded-2xl">
+                        <Gamepad2 size={24} style={{ color: 'var(--primary)' }} />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-1">{obfuscate('Arcade', textObfuscationLevel)}</h3>
+                      </div>
+                      <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform">
+                        <Gamepad2 size={120} />
+                      </div>
+                    </div>
+                  </BentoCard>
+
+                  {/* Card Pack Countdown */}
+                  <BentoCard 
+                    className="min-h-[220px]" 
+                    hasWallpaper={!!wallpaper}
+                    onClick={() => setView('cards')}
+                  >
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="flex justify-between items-start">
+                        <div className="p-3 bg-white/5 rounded-2xl">
+                          <Layers size={24} style={{ color: 'var(--primary)' }} />
+                        </div>
+                        {cardsCooldown === 0 ? (
+                          <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{obfuscate('Ready', textObfuscationLevel)}</div>
+                        ) : (
+                          <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest">{obfuscate('Cooling', textObfuscationLevel)}</div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-2">{obfuscate('Packs', textObfuscationLevel)}</h3>
+                        {cardsCooldown > 0 ? (
+                          <div>
+                            <div className="text-2xl font-mono font-black tabular-nums tracking-tighter">
+                              {Math.floor(cardsCooldown / 60000)}:{String(Math.floor((cardsCooldown % 60000) / 1000)).padStart(2, '0')}
+                            </div>
+                            <div className="text-[10px] text-zinc-500 font-bold uppercase mt-1 tracking-widest">{obfuscate('Until Next Pack', textObfuscationLevel)}</div>
+                          </div>
+                        ) : (
+                          <p className="text-[10px] text-zinc-500 italic uppercase">{obfuscate('Your daily pack is waiting.', textObfuscationLevel)}</p>
+                        )}
+                      </div>
+                    </div>
+                  </BentoCard>
+
+                  {/* Recents/Favorites Sidebar-like Column */}
+                  <BentoCard 
+                    className="lg:row-span-2 min-h-[300px]" 
+                    hasWallpaper={!!wallpaper}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-black uppercase italic tracking-tighter">{obfuscate('Recents', textObfuscationLevel)}</h3>
+                        <RotateCcw size={14} className="text-zinc-600" />
+                      </div>
+                      <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar">
+                        {recentlyPlayed.length > 0 ? (
+                          recentlyPlayed.slice(0, 5).map((game, i) => (
+                            <div 
+                              key={`${game.name}-${i}`}
+                              onClick={() => {
+                                setSelectedGame(game);
+                                setView('games');
+                              }}
+                              className="group/item flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5 cursor-pointer"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-zinc-950 flex items-center justify-center text-xs font-black" style={{ color: 'var(--primary)' }}>
+                                {game.name?.charAt(0)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[11px] font-bold truncate uppercase tracking-tight">{game.name}</div>
+                                <div className="text-[9px] text-zinc-500 font-mono">READY</div>
+                              </div>
+                              <div className="opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                <Gamepad2 size={14} style={{ color: 'var(--primary)' }} />
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-[10px] text-zinc-600 italic py-4">No recent activity</div>
+                        )}
+                      </div>
+                    </div>
+                  </BentoCard>
+
+                  {/* Updates Card */}
+                  <BentoCard 
+                    className="lg:col-span-2 min-h-[160px]" 
+                    hasWallpaper={!!wallpaper}
+                    onClick={() => setView('announcements')}
+                  >
+                    <div className="flex items-center gap-6 h-full">
+                      <div className="hidden sm:flex p-6 bg-white/5 rounded-[2rem] items-center justify-center">
+                        <Bell size={40} style={{ color: 'var(--primary)' }} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Updates</span>
+                        </div>
+                        <h3 className="text-xl font-black uppercase italic tracking-tighter mb-1">New Features Added</h3>
+                        <p className="text-[10px] text-zinc-500 leading-relaxed max-w-md italic">Check the updates log for the latest bypass methods and game additions.</p>
+                      </div>
+                    </div>
+                  </BentoCard>
+
+                  {/* App Store */}
+                  <BentoCard 
+                    className="min-h-[160px]" 
+                    hasWallpaper={!!wallpaper}
+                    onClick={() => setView('appstore')}
+                  >
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="p-3 bg-zinc-950/50 w-fit rounded-2xl">
+                        <ShoppingBag size={24} style={{ color: 'var(--primary)' }} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black uppercase italic tracking-tighter mb-1">{obfuscate('App Store', textObfuscationLevel)}</h3>
+                      </div>
+                    </div>
+                  </BentoCard>
+
+                  {/* All Apps Bento Card */}
+                  <BentoCard 
+                    className="lg:col-span-3 min-h-[160px]" 
+                    hasWallpaper={!!wallpaper}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-[10px] font-black uppercase italic tracking-widest text-zinc-600">{obfuscate('Applications', textObfuscationLevel)}</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-x-2 gap-y-4 p-2 overflow-y-auto no-scrollbar content-start">
+                        {[
+                          { icon: <Code2 size={14} />, label: "HTML", view: 'html' },
+                          { icon: <Palette size={14} />, label: "Theme", view: 'theme' },
+                          { icon: <CalculatorIcon size={14} />, label: "Calculator", view: 'calculator' },
+                          { icon: <TerminalIcon size={14} />, label: "Mushroom", view: 'terminal' },
+                          { icon: <Book size={14} />, label: "Verse", view: 'verse' },
+                          { icon: <FileText size={14} />, label: "Game Notes", view: 'gamenotes' },
+                          { icon: <PenTool size={14} />, label: "Paint", view: 'paint' },
+                          { icon: <Headset size={14} />, label: "Lo-Fi", view: 'lofi' },
+                          { icon: <Layers size={14} />, label: "Widgets", view: 'widget' },
+                          { icon: <Shield size={14} />, label: "Security", view: 'security' },
+                          { icon: <Globe size={14} />, label: "Other Sites", view: 'othersites' }
+                        ].map((item, idx) => (
+                          <motion.button
+                            key={idx}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setView(item.view as any)}
+                            className="flex flex-col items-center gap-1 w-[52px] group"
+                          >
+                            <div 
+                              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all group-hover:bg-white/10 group-hover:border-[var(--primary)] group-hover:border-opacity-50"
+                              style={{ color: 'var(--primary)' }}
+                            >
+                              {item.icon}
+                            </div>
+                            <span className="text-[7px] font-black uppercase tracking-tighter text-zinc-500 group-hover:text-white truncate w-full text-center px-0.5">
+                              {obfuscate(item.label, textObfuscationLevel)}
+                            </span>
+                          </motion.button>
                         ))}
                       </div>
-                    </section>
-                  )}
-
-                  <section>
-                    {(fnfFavoritedGames.length > 0) && (
-                      <div className="flex items-center gap-4 mb-8">
-                        <Music size={20} style={{ color: 'var(--primary)' }} />
-                        <h3 className="text-xl font-black tracking-tighter uppercase italic">All Mods</h3>
-                        <div className="h-px flex-1 bg-white/5" />
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {fnfOtherGames.map((game) => (
-                        <GameCard 
-                          key={game.name} 
-                          game={game} 
-                          isFavorite={false} 
-                          onSelect={handleGameSelect} 
-                          onToggleFavorite={toggleFavorite} 
-                          obfuscationLevel={textObfuscationLevel}
-                        />
-                      ))}
                     </div>
-                  </section>
-
-                  {fnfFilteredGames.length === 0 && (
-                    <div className="text-zinc-600 italic py-20 text-center col-span-full">
-                      <div className="text-4xl mb-4">∅</div>
-                      No mods found for "{searchQuery}"
-                    </div>
-                  )}
+                  </BentoCard>
                 </div>
               </div>
             </motion.div>
@@ -1105,7 +965,7 @@ export default function App() {
               className="h-full flex flex-col overflow-hidden"
             >
               <WindowHeader title="Arcade" onClose={() => setView('desktop')} />
-              <div className="flex-1 overflow-y-auto p-8">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/10 pb-8">
                 <div>
                   <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-2">ARCADE</h1>
@@ -1604,75 +1464,6 @@ export default function App() {
                         >
                           <motion.div 
                             animate={{ x: passcodeEnabled ? 20 : 0 }}
-                            className="w-4 h-4 bg-white rounded-full shadow-lg"
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                {/* History Spoofer Section */}
-                <section>
-                  <div className="flex items-center gap-4 mb-8">
-                    <RotateCcw size={20} style={{ color: 'var(--primary)' }} />
-                    <h3 className="text-xl font-black tracking-tighter uppercase italic">History Spoofer</h3>
-                    <div className="h-px flex-1 bg-white/5" />
-                  </div>
-                  <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8 space-y-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                      <div>
-                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">{obfuscate('Trace Washer', textObfuscationLevel)}</h4>
-                        <p className="text-[10px] text-zinc-500 italic mb-2">Bury this site deep in your browser's history stack.</p>
-                        <p className="text-[10px] text-zinc-500 italic max-w-md">
-                          Click "Wash History" to rapidly push 10 fake entries to your history stack. Hitting the "Back" button or checking history will show educational titles instead of the arcade.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => washHistory(false)}
-                        disabled={historySpoofing}
-                        className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl flex items-center gap-3 ${
-                          historySpoofing 
-                            ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
-                            : 'bg-white text-black hover:scale-105 active:scale-95'
-                        }`}
-                      >
-                        {historySpoofing ? (
-                          <>
-                            <RotateCcw size={18} className="animate-spin" />
-                            Washing...
-                          </>
-                        ) : (
-                          <>
-                            <RotateCcw size={18} />
-                            Wash History
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="pt-8 border-t border-white/5 flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">{obfuscate('Auto-Wash', textObfuscationLevel)}</h4>
-                        <p className="text-[10px] text-zinc-500 italic">Automatically "wash" history every 10 minutes.</p>
-                      </div>
-                      <div className="flex items-center gap-3 bg-zinc-950 px-4 py-2 rounded-full border border-white/5">
-                        <span className={`text-[10px] font-bold uppercase tracking-widest ${autoHistorySpoof ? 'text-white' : 'text-zinc-500'}`}>
-                          {autoHistorySpoof ? 'On' : 'Off'}
-                        </span>
-                        <button
-                          onClick={() => {
-                            const next = !autoHistorySpoof;
-                            setAutoHistorySpoof(next);
-                            localStorage.setItem('autoHistorySpoof', String(next));
-                          }}
-                          className={`relative w-10 h-5 rounded-full transition-all flex items-center px-0.5 ${
-                            autoHistorySpoof ? 'bg-zinc-700' : 'bg-zinc-950 border border-white/5'
-                          }`}
-                          style={autoHistorySpoof ? { backgroundColor: 'var(--primary)' } : {}}
-                        >
-                          <motion.div 
-                            animate={{ x: autoHistorySpoof ? 20 : 0 }}
                             className="w-4 h-4 bg-white rounded-full shadow-lg"
                           />
                         </button>

@@ -15,20 +15,15 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
   const { level } = useObfuscation();
   const updates = [
     {
+      title: "UI OVERHAUL",
+      description: "Lactose has had a HUGE UI overhaul. I hope you like it!",
+      icon: <Sparkles size={18} className="text-amber-400" />,
+    },
+    {
       title: "DISCORD",
       description: "Be sure to join our official Discord server: https://discord.gg/3XAgBPC3vx",
       link: "https://discord.gg/3XAgBPC3vx",
       icon: <MessageSquare size={18} className="text-blue-400" />,
-    },
-    {
-      title: "NEW APP",
-      description: "In the App Store, there is a new app called Scientific Calculator made by TATO!",
-      icon: <ShoppingBag size={18} className="text-emerald-400" />,
-    },
-    {
-      title: "NEW APP",
-      description: "In the App Store, there is a new app called Font Changer made by TATO!",
-      icon: <ShoppingBag size={18} className="text-purple-400" />,
     }
   ];
 
@@ -102,8 +97,8 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
         <div className="w-16 h-16 bg-zinc-900 border border-white/10 rounded-full flex items-center justify-center mb-4 shadow-2xl">
           <Bell size={32} style={{ color: 'var(--primary)' }} />
         </div>
-        <h1 className="text-4xl font-black tracking-tighter uppercase italic">UPDATES</h1>
-        <p className="text-zinc-500 text-sm font-medium mt-2">Latest features and security improvements</p>
+        <h1 className="text-4xl font-black tracking-tighter uppercase italic">{obfuscate('UPDATES', level)}</h1>
+        <p className="text-zinc-500 text-sm font-medium mt-2">{obfuscate('Latest features and security improvements', level)}</p>
       </div>
 
       <div className="space-y-6">
@@ -121,10 +116,10 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
                   <div className="p-2 bg-zinc-950 border border-white/5 rounded-lg">
                     {update.icon}
                   </div>
-                  <h3 className="font-bold text-lg text-white tracking-tight">{update.title}</h3>
+                  <h3 className="font-bold text-lg text-white tracking-tight">{obfuscate(update.title, level)}</h3>
                 </div>
                 <p className="text-zinc-400 text-sm leading-relaxed pl-1">
-                  {update.description}
+                  {obfuscate(update.description, level)}
                   {update.link && (
                     <a href={update.link} target="_blank" rel="noopener noreferrer" className="block mt-2 text-indigo-400 hover:underline flex items-center gap-1">
                       {update.link} <ExternalLink size={12} />
@@ -140,7 +135,7 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
       <div className="py-12 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border border-white/5 rounded-full text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
           <Sparkles size={12} style={{ color: 'var(--primary)' }} />
-          End of feed
+          {obfuscate('End of feed', level)}
         </div>
       </div>
     </div>
