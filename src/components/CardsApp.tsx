@@ -27,7 +27,7 @@ export const CardsApp: React.FC = () => {
 
   // Load from LocalStorage
   useEffect(() => {
-    const saved = localStorage.getItem('tcg_data_v2');
+    const saved = localStorage.getItem('tcg_data_v3');
     if (saved) {
       setUserData(JSON.parse(saved));
     } else {
@@ -42,7 +42,7 @@ export const CardsApp: React.FC = () => {
 
   // Save to LocalStorage
   const saveToLocal = (data: UserData) => {
-    localStorage.setItem('tcg_data_v2', JSON.stringify(data));
+    localStorage.setItem('tcg_data_v3', JSON.stringify(data));
     setUserData(data);
   };
 

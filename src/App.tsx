@@ -8,7 +8,6 @@ import { Tomodachi } from './components/Tomodachi';
 import { ClockApp, Alarm } from './components/ClockApp';
 import { WidgetApp } from './components/WidgetApp';
 import { AppStore } from './components/AppStore';
-import { SuperMushroom } from './components/SuperMushroom';
 import { VerseOfTheDay } from './components/VerseOfTheDay';
 import { CardsApp } from './components/CardsApp';
 import { GameNotesApp } from './components/GameNotesApp';
@@ -146,7 +145,7 @@ export default function App() {
   const { level: textObfuscationLevel, setLevel: setTextObfuscationLevel } = useObfuscation();
   const [sessionStartTime] = useState(new Date());
   const [notifications, setNotifications] = useState<{ id: string; message: string; type: string }[]>([]);
-  const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'appstore' | 'terminal' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'widget'>('desktop');
+  const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'appstore' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'widget'>('desktop');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
@@ -223,7 +222,7 @@ export default function App() {
   useEffect(() => {
     const syncApps = () => {
       // Cards Sync
-      const cardsData = localStorage.getItem('tcg_data_v2');
+      const cardsData = localStorage.getItem('tcg_data_v3');
       if (cardsData) {
         const parsed = JSON.parse(cardsData);
         if (parsed.lastPackOpened) {
@@ -704,11 +703,11 @@ export default function App() {
               style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : {}}
             >
               {/* Bento Grid Layout */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-8 relative z-10 flex flex-col min-h-0">
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 px-4 md:px-8">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar py-12 relative z-10 flex flex-col justify-center min-h-0">
+                <div className="w-full max-w-[1800px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8 px-4 md:px-12">
                   {/* Clock & Date Card */}
                   <BentoCard 
-                    className="lg:col-span-2 min-h-[220px]" 
+                    className="lg:col-span-2 xl:col-span-2 min-h-[240px]" 
                     hasWallpaper={!!wallpaper}
                     onClick={() => setView('clock')}
                   >
@@ -730,7 +729,7 @@ export default function App() {
                     </div>
                   </BentoCard>                  {/* Arcade Quick Launch */}
                   <BentoCard 
-                    className="min-h-[220px]" 
+                    className="xl:col-span-1 min-h-[240px]" 
                     hasWallpaper={!!wallpaper}
                     onClick={() => setView('games')}
                   >
@@ -749,7 +748,7 @@ export default function App() {
 
                   {/* Card Pack Countdown */}
                   <BentoCard 
-                    className="min-h-[220px]" 
+                    className="xl:col-span-1 min-h-[240px]" 
                     hasWallpaper={!!wallpaper}
                     onClick={() => setView('cards')}
                   >
@@ -782,7 +781,7 @@ export default function App() {
 
                   {/* Recents/Favorites Sidebar-like Column */}
                   <BentoCard 
-                    className="lg:row-span-2 min-h-[300px]" 
+                    className="lg:row-span-2 xl:col-span-1 xl:row-span-2 min-h-[300px]" 
                     hasWallpaper={!!wallpaper}
                   >
                     <div className="flex flex-col h-full">
@@ -822,7 +821,7 @@ export default function App() {
 
                   {/* Updates Card */}
                   <BentoCard 
-                    className="lg:col-span-2 min-h-[160px]" 
+                    className="lg:col-span-2 xl:col-span-3 min-h-[160px]" 
                     hasWallpaper={!!wallpaper}
                     onClick={() => setView('announcements')}
                   >
@@ -843,7 +842,7 @@ export default function App() {
 
                   {/* App Store */}
                   <BentoCard 
-                    className="min-h-[160px]" 
+                    className="xl:col-span-1 min-h-[160px]" 
                     hasWallpaper={!!wallpaper}
                     onClick={() => setView('appstore')}
                   >
@@ -859,7 +858,7 @@ export default function App() {
 
                   {/* All Apps Bento Card */}
                   <BentoCard 
-                    className="lg:col-span-3 min-h-[160px]" 
+                    className="lg:col-span-3 xl:col-span-5 min-h-[160px]" 
                     hasWallpaper={!!wallpaper}
                   >
                     <div className="flex flex-col h-full">
@@ -871,7 +870,6 @@ export default function App() {
                           { icon: <Code2 size={14} />, label: "HTML", view: 'html' },
                           { icon: <Palette size={14} />, label: "Theme", view: 'theme' },
                           { icon: <CalculatorIcon size={14} />, label: "Calculator", view: 'calculator' },
-                          { icon: <TerminalIcon size={14} />, label: "Mushroom", view: 'terminal' },
                           { icon: <Book size={14} />, label: "Verse", view: 'verse' },
                           { icon: <FileText size={14} />, label: "Game Notes", view: 'gamenotes' },
                           { icon: <PenTool size={14} />, label: "Paint", view: 'paint' },
@@ -1542,22 +1540,6 @@ export default function App() {
           >
             <WindowHeader title="App Store" onClose={() => setView('desktop')} />
             <AppStore onClose={() => setView('desktop')} onSelectApp={handleGameSelect} />
-          </motion.div>
-        ) : view === 'terminal' ? (
-          <motion.div 
-            key="terminal"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="h-full flex flex-col overflow-hidden"
-          >
-            <WindowHeader title="Super Mushroom" onClose={() => setView('desktop')} />
-            <SuperMushroom 
-              onClose={() => setView('desktop')} 
-              onOpenApp={(v: any) => setView(v)}
-              sessionStartTime={sessionStartTime}
-              onAlert={(msg) => addNotification(msg, 'warning')}
-            />
           </motion.div>
         ) : view === 'verse' ? (
           <motion.div 

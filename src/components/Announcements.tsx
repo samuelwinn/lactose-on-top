@@ -15,6 +15,11 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
   const { level } = useObfuscation();
   const updates = [
     {
+      title: "CARDS: VIDEO GAMES PACK",
+      description: "A new card pack has arrived! Introducing the 'Video Games' pack with 100 new entries. Note: All previous card data has been reset for the new season.",
+      icon: <Layers size={18} className="text-white" />,
+    },
+    {
       title: "ARCADE UPDATE",
       description: "Minecraft and FNF have been officially moved to the Arcade area. You can now find all your favorite games in one place!",
       icon: <Gamepad2 size={18} className="text-zinc-400" />,
