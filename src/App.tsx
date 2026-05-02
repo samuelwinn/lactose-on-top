@@ -325,7 +325,10 @@ export default function App() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      addNotification("To install: Use your browser's menu ('Add to Home Screen' or 'Install app')", 'info');
+      return;
+    }
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     setDeferredPrompt(null);
@@ -994,15 +997,17 @@ export default function App() {
                   <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-2">ARCADE</h1>
                 </div>
                 <div className="flex items-center gap-4">
-                  {showInstallBtn && (
-                    <button
-                      onClick={handleInstallClick}
-                      className="hidden sm:flex items-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs font-bold hover:bg-emerald-500/20 transition-all text-emerald-400 animate-pulse"
-                    >
-                      <Download size={14} />
-                      INSTALL APP
-                    </button>
-                  )}
+                  <button
+                    onClick={handleInstallClick}
+                    className={`flex items-center gap-2 px-4 py-3 border rounded-xl text-xs font-bold transition-all ${
+                      showInstallBtn 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse' 
+                        : 'bg-white/5 border-white/10 text-zinc-500'
+                    }`}
+                  >
+                    <Download size={14} />
+                    {showInstallBtn ? 'INSTALL APP' : 'ADD TO HOME'}
+                  </button>
                   <button
                     onClick={() => {
                       if (games.length > 0) {
@@ -1039,6 +1044,25 @@ export default function App() {
                 </div>
               ) : (
                 <div className="space-y-12">
+                  {(searchQuery.toLowerCase().includes('install') || searchQuery.toLowerCase().includes('lactose')) && (
+                    <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400">
+                          <Download size={32} />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black uppercase italic text-emerald-400">Install LACTOSE</h3>
+                          <p className="text-xs text-emerald-500/70 font-medium">Add to your home screen for the best experience.</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleInstallClick}
+                        className="w-full sm:w-auto px-8 py-3 bg-emerald-500 text-black font-black uppercase tracking-widest text-xs rounded-xl hover:scale-105 transition-transform"
+                      >
+                        {showInstallBtn ? 'Install Now' : 'How to Install'}
+                      </button>
+                    </div>
+                  )}
                   {favoritedGames.length > 0 && (
                     <section>
                       <div className="flex items-center gap-4 mb-8">
@@ -1573,7 +1597,12 @@ export default function App() {
             className="h-full flex flex-col overflow-hidden"
           >
             <WindowHeader title="App Store" onClose={() => setView('desktop')} />
-            <AppStore onClose={() => setView('desktop')} onSelectApp={handleGameSelect} />
+            <AppStore 
+              onClose={() => setView('desktop')} 
+              onSelectApp={handleGameSelect} 
+              onInstall={handleInstallClick}
+              isInstallable={showInstallBtn}
+            />
           </motion.div>
         ) : view === 'verse' ? (
           <motion.div 
