@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Layers, Sparkles, Clock, Trophy, Package, Search, AlertCircle, Loader2, Coins, X } from 'lucide-react';
-import { ALL_CARDS, RARITIES, Card, Rarity } from '../constants/cards';
+import { ALL_CARDS, RARITIES, Card, Rarity, Season } from '../constants/cards';
 import { obfuscate } from '../constants';
 import { useObfuscation } from '../context/ObfuscationContext';
 // No Firebase usage needed for local-only app
@@ -24,10 +24,12 @@ export const CardsApp: React.FC = () => {
   const [cooldown, setCooldown] = useState<number>(0);
   const [showPackOpener, setShowPackOpener] = useState(false);
   const [showCardList, setShowCardList] = useState(false);
+  const [checklistSeason, setChecklistSeason] = useState<Season>('Video Game');
+  const [vaultSeason, setVaultSeason] = useState<Season>('Video Game');
 
   // Load from LocalStorage
   useEffect(() => {
-    const saved = localStorage.getItem('tcg_data_v3');
+    const saved = localStorage.getItem('tcg_data_v2');
     if (saved) {
       setUserData(JSON.parse(saved));
     } else {
@@ -42,7 +44,7 @@ export const CardsApp: React.FC = () => {
 
   // Save to LocalStorage
   const saveToLocal = (data: UserData) => {
-    localStorage.setItem('tcg_data_v3', JSON.stringify(data));
+    localStorage.setItem('tcg_data_v2', JSON.stringify(data));
     setUserData(data);
   };
 
@@ -65,19 +67,10 @@ export const CardsApp: React.FC = () => {
     return () => clearInterval(interval);
   }, [calculateCooldown]);
 
-  const getRandomCard = (): Card => {
+  const getRandomCard = (season: Season): Card => {
     const r = Math.random();
     let rarity: Rarity = 'Common';
     
-    // Thresholds based on cumulative chances:
-    // Ultra Mythic: 0.001
-    // Mythic: 0.001 + 0.009 = 0.010
-    // Legendary: 0.010 + 0.0198 = 0.0298
-    // Epic: 0.0298 + 0.040 = 0.0698
-    // Rare: 0.0698 + 0.0795 = 0.1493
-    // Uncommon: 0.1493 + 0.25 = 0.3993
-    // Common: remainder (up to 1.0)
-
     if (r < 0.001) rarity = 'Ultra Mythic';
     else if (r < 0.010) rarity = 'Mythic';
     else if (r < 0.0298) rarity = 'Legendary';
@@ -86,38 +79,55 @@ export const CardsApp: React.FC = () => {
     else if (r < 0.3993) rarity = 'Uncommon';
     else rarity = 'Common';
 
-    const possibleCards = ALL_CARDS.filter(c => c.rarity === rarity);
+    const possibleCards = ALL_CARDS.filter(c => c.rarity === rarity && c.season === season);
+    // Fallback logic to ensure we always get a card from the correct season
+    if (possibleCards.length === 0) {
+      const fallbackPool = ALL_CARDS.filter(c => c.season === season);
+      return fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+    }
     return possibleCards[Math.floor(Math.random() * possibleCards.length)];
   };
 
-  const openPack = async () => {
-    if (cooldown > 0 || pulling) return;
+  const openPack = async (season: Season) => {
+    if (cooldown > 0 || pulling) {
+      console.log('Pack open blocked:', { cooldown, pulling });
+      return;
+    }
 
-    setPulling(true);
-    const pulledCards = [getRandomCard(), getRandomCard()];
-    setNewCards(pulledCards);
-    setShowPackOpener(true);
+    try {
+      setPulling(true);
+      const pulledCards = [getRandomCard(season), getRandomCard(season)];
+      
+      const newCollection = { ...(userData?.collection || {}) };
+      pulledCards.forEach(card => {
+        newCollection[card.id] = (newCollection[card.id] || 0) + 1;
+      });
 
-    const newCollection = { ...userData?.collection };
-    pulledCards.forEach(card => {
-      newCollection[card.id] = (newCollection[card.id] || 0) + 1;
-    });
+      const newUserData: UserData = {
+        collection: newCollection,
+        lastPackOpened: Date.now(),
+        username: userData?.username || 'Card Master'
+      };
 
-    const newUserData: UserData = {
-      collection: newCollection,
-      lastPackOpened: Date.now(),
-      username: userData?.username || 'Card Master'
-    };
-
-    saveToLocal(newUserData);
-    setPulling(false);
+      setNewCards(pulledCards);
+      saveToLocal(newUserData);
+      // Brief delay to simulate "scanning" and allow state to settle
+      setTimeout(() => {
+        setShowPackOpener(true);
+        setPulling(false);
+      }, 800);
+    } catch (error) {
+      console.error('Failed to open pack:', error);
+      setPulling(false);
+    }
   };
 
   const filteredCollection = ALL_CARDS.filter(card => {
     const matchesSearch = card.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRarity = filterRarity === 'All' || card.rarity === filterRarity;
+    const matchesSeason = card.season === vaultSeason;
     const isOwned = (userData?.collection[card.id] || 0) > 0;
-    return matchesSearch && matchesRarity && isOwned;
+    return matchesSearch && matchesRarity && matchesSeason && isOwned;
   });
 
   const CardItem: React.FC<{ card: Card; count?: number; isNew?: boolean }> = ({ card, count }) => (
@@ -211,45 +221,77 @@ export const CardsApp: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto p-6">
         {view === 'shop' ? (
-          <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-20 text-center">
-            <button
-              onClick={openPack}
-              disabled={cooldown > 0 || pulling}
-              className={`relative group px-12 py-6 rounded-3xl font-black uppercase tracking-[0.2em] transition-all overflow-hidden ${
-                cooldown > 0 || pulling 
-                ? 'bg-zinc-900 text-zinc-600 cursor-not-allowed' 
-                : 'bg-white text-black hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)]'
-              }`}
-            >
-              <div className="relative z-10 flex items-center gap-3">
-                {pulling ? <Loader2 className="animate-spin" /> : (cooldown > 0 ? <Clock size={20} /> : <Sparkles size={20} />)}
-                {pulling ? 'SCANNING...' : (cooldown > 0 ? `LOCKED (${Math.ceil(cooldown / 1000)}s)` : 'GENERATE PACK')}
-              </div>
-            </button>
-            
-            {cooldown > 0 && (
-              <p className="mt-4 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-12">
-                Server stabilizing... Next pull available in {Math.ceil(cooldown / 1000)} seconds
-              </p>
-            )}
-
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 w-full text-left ${cooldown <= 0 ? 'mt-12' : ''}`}>
-              <div className="md:col-span-2 bg-red-950/20 p-6 rounded-2xl border border-red-500/20 space-y-4">
-                <div className="flex items-center gap-3 text-red-400">
-                  <AlertCircle size={20} />
-                  <h3 className="font-black uppercase tracking-tighter text-white">System Reset Notice</h3>
+          <div className="max-w-4xl mx-auto flex flex-col items-center py-12">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Generate Pack</h2>
+              <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">Choose your data stream. Cooldown is shared.</p>
+              
+              {cooldown > 0 && (
+                <div className="mt-6 flex items-center gap-2 justify-center px-6 py-3 bg-zinc-900 border border-white/5 rounded-2xl">
+                  <Clock size={16} className="text-zinc-500" />
+                  <span className="text-xs font-mono font-bold text-zinc-400">
+                    LOCKED: {Math.floor(cooldown / 60000)}:${(Math.floor((cooldown % 60000) / 1000)).toString().padStart(2, '0')} REMAINING
+                  </span>
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                  I'm sorry if you had a good card, but, I reset everyone's cards, as for some reason, everyone had an Ultra Mythic card. I made it harder to get better cards.
-                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+              {/* New Genesis Pack */}
+              <div className="group relative bg-zinc-900/50 border border-white/5 rounded-[40px] p-8 flex flex-col items-center gap-8 transition-all hover:border-white/10 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="w-full aspect-[4/5] bg-zinc-950 rounded-[32px] border border-white/5 flex flex-col items-center justify-center relative overflow-hidden">
+                   <Layers size={80} className="text-zinc-800 group-hover:text-zinc-400 transition-colors duration-500" />
+                   <div className="absolute bottom-8 left-0 right-0 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 mb-1">Season 01</p>
+                      <h4 className="text-xl font-black italic uppercase tracking-tighter text-zinc-500 group-hover:text-white transition-colors">New Genesis</h4>
+                   </div>
+                </div>
+                <button
+                  onClick={() => openPack('New Genesis')}
+                  disabled={cooldown > 0 || pulling}
+                  className={`relative z-10 w-full py-5 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all ${
+                    cooldown > 0 || pulling 
+                    ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' 
+                    : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-xl'
+                  }`}
+                >
+                  {pulling ? 'SCANNING...' : (cooldown > 0 ? `LOCKED (${Math.floor(cooldown / 60000)}:${(Math.floor((cooldown % 60000) / 1000)).toString().padStart(2, '0')})` : 'GENERATE PACK')}
+                </button>
               </div>
+
+              {/* Video Game Pack */}
+              <div className="group relative bg-zinc-900/50 border border-white/5 rounded-[40px] p-8 flex flex-col items-center gap-8 transition-all hover:border-white/10 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="w-full aspect-[4/5] bg-zinc-950 rounded-[32px] border border-white/5 flex flex-col items-center justify-center relative overflow-hidden">
+                   <Package size={80} className="text-zinc-800 group-hover:text-zinc-400 transition-colors duration-500" />
+                   <div className="absolute bottom-8 left-0 right-0 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 mb-1">Season 02</p>
+                      <h4 className="text-xl font-black italic uppercase tracking-tighter text-zinc-500 group-hover:text-white transition-colors">Video Game</h4>
+                   </div>
+                </div>
+                <button
+                  onClick={() => openPack('Video Game')}
+                  disabled={cooldown > 0 || pulling}
+                  className={`relative z-10 w-full py-5 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all ${
+                    cooldown > 0 || pulling 
+                    ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' 
+                    : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-xl underline decoration-2 underline-offset-4'
+                  }`}
+                >
+                  {pulling ? 'SCANNING...' : (cooldown > 0 ? `LOCKED (${Math.floor(cooldown / 60000)}:${(Math.floor((cooldown % 60000) / 1000)).toString().padStart(2, '0')})` : 'GENERATE PACK')}
+                </button>
+              </div>
+            </div>
+
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 w-full text-left mt-12`}>
               <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
                 <div className="flex items-center gap-3 text-[var(--primary)]">
                   <Sparkles size={20} />
-                  <h3 className="font-black uppercase tracking-tighter">Getting Started</h3>
+                  <h3 className="font-black uppercase tracking-tighter">Season Pass Info</h3>
                 </div>
                 <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                  Welcome to NEW GENESIS. Periodically, you are granted access to a fresh data-stream containing two random entities. Your goal is to catalog the entire New Genesis set before it leaves.
+                  The seasonal system is live! Your 'New Genesis' cards have been fully restored and can be viewed alongside the new 'Video Game' set. Use the season tabs in the Vault and Checklist to manage your growing collection.
                 </p>
               </div>
               <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
@@ -258,73 +300,77 @@ export const CardsApp: React.FC = () => {
                   <h3 className="font-black uppercase tracking-tighter">Rarity Tiers</h3>
                 </div>
                 <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                  Entities range from <span className="text-zinc-300">Common</span> to <span className="text-white">Ultra Mythic</span>. Higher rarity cards have distinct energy signatures (glows) and are significantly harder to find.
-                </p>
-              </div>
-              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
-                <div className="flex items-center gap-3 text-blue-400">
-                  <Clock size={20} />
-                  <h3 className="font-black uppercase tracking-tighter">The Cooldown</h3>
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                  Cooldown: A thirty-minute interval is required between pack openings.
-                </p>
-              </div>
-              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 space-y-4">
-                <div className="flex items-center gap-3 text-emerald-400">
-                  <Package size={20} />
-                  <h3 className="font-black uppercase tracking-tighter">The Vault</h3>
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                  All extracted entities are safely stored in your local Vault. You can search, filter, and track duplicates of your unique collection.
+                  Rarities apply across all seasons. Video Game entities are the current focus, but the New Genesis stream remains accessible.
                 </p>
               </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-8">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
-                <input
-                  type="text"
-                  placeholder="SEARCH VAULT..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-zinc-900 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-white/10 transition-colors placeholder:text-zinc-700 font-bold uppercase tracking-widest"
-                />
+          <div className="space-y-12">
+            <div className="flex flex-col space-y-8">
+              {/* Vault Header & Season Tabs */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">The Vault</h2>
+                  <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Authorized Data Log</p>
+                </div>
+
+                <div className="flex gap-2 p-1 bg-zinc-900 rounded-xl border border-white/5">
+                  {(['Video Game', 'New Genesis'] as Season[]).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setVaultSeason(s)}
+                      className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${vaultSeason === s ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
-                <button
-                  onClick={() => setFilterRarity('All')}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterRarity === 'All' ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
-                >
-                  All
-                </button>
-                {Object.keys(RARITIES).map((r) => (
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+                  <input
+                    type="text"
+                    placeholder={`SEARCH ${vaultSeason.toUpperCase()}...`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-zinc-900 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-white/10 transition-colors placeholder:text-zinc-700 font-bold uppercase tracking-widest"
+                  />
+                </div>
+
+                <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
                   <button
-                    key={r}
-                    onClick={() => setFilterRarity(r as Rarity)}
-                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterRarity === r ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
-                    style={{ color: filterRarity === r ? undefined : RARITIES[r as Rarity].color }}
+                    onClick={() => setFilterRarity('All')}
+                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterRarity === 'All' ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
                   >
-                    {r}
+                    All
                   </button>
-                ))}
+                  {Object.keys(RARITIES).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setFilterRarity(r as Rarity)}
+                      className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${filterRarity === r ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
+                      style={{ color: filterRarity === r ? undefined : RARITIES[r as Rarity].color }}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {filteredCollection.length === 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {filteredCollection.map(card => (
+                <CardItem key={card.id} card={card} count={userData?.collection[card.id]} />
+              ))}
+            </div>
+
+            {filteredCollection.length === 0 && (
               <div className="py-20 flex flex-col items-center justify-center text-zinc-500">
                 <AlertCircle size={48} className="opacity-20 mb-4" />
                 <p className="font-bold uppercase tracking-widest text-sm">No data matching your query found</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {filteredCollection.map(card => (
-                  <CardItem key={card.id} card={card} count={userData?.collection[card.id]} />
-                ))}
               </div>
             )}
           </div>
@@ -366,23 +412,6 @@ export const CardsApp: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Stats Rail */}
-      <div className="shrink-0 px-6 py-2 border-t border-white/5 bg-zinc-950/50 flex items-center justify-between">
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2">
-            <Trophy size={14} className="text-zinc-500" />
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-              Unique: {Object.keys(userData?.collection || {}).length} / {ALL_CARDS.length}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Coins size={14} className="text-zinc-500" />
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-              Total Cards: {Object.values(userData?.collection || {}).reduce((a, b) => a + b, 0)}
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Card List / Rarity Modal */}
       <AnimatePresence>
@@ -444,41 +473,57 @@ export const CardsApp: React.FC = () => {
 
                 {/* Card Checklist */}
                 <section className="space-y-8">
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 flex items-center gap-2 italic">
-                    <span className="w-8 h-[1px] bg-zinc-800" />
-                    EXTRACTED DATASET
-                    <span className="flex-1 h-[1px] bg-zinc-800" />
-                  </h3>
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2 italic w-full md:w-auto">
+                      <span className="w-8 h-[1px] bg-zinc-800" />
+                      EXTRACTED DATASET
+                      <span className="hidden md:inline w-8 h-[1px] bg-zinc-800" />
+                    </h3>
+
+                    <div className="flex gap-2 p-1 bg-zinc-950/50 rounded-xl border border-white/5 w-full md:w-auto">
+                      {(['Video Game', 'New Genesis'] as Season[]).map(s => (
+                        <button
+                          key={s}
+                          onClick={() => setChecklistSeason(s)}
+                          className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${checklistSeason === s ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-zinc-600 hover:text-zinc-400'}`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   
-                  <div className="space-y-10">
-                    {(Object.keys(RARITIES) as Rarity[]).map(rarity => {
-                      const cardsOfRarity = ALL_CARDS.filter(c => c.rarity === rarity);
-                      if (cardsOfRarity.length === 0) return null;
-                      
-                      return (
-                        <div key={rarity} className="space-y-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: RARITIES[rarity].color }} />
-                            <h4 className="font-black text-sm uppercase tracking-widest" style={{ color: RARITIES[rarity].color }}>
-                              {rarity} ({cardsOfRarity.length})
-                            </h4>
+                  <div className="space-y-16">
+                    <div className="space-y-10">
+                      {(Object.keys(RARITIES) as Rarity[]).map(rarity => {
+                        const cardsOfRarity = ALL_CARDS.filter(c => c.rarity === rarity && c.season === checklistSeason);
+                        if (cardsOfRarity.length === 0) return null;
+                        
+                        return (
+                          <div key={`${checklistSeason}-${rarity}`} className="space-y-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: RARITIES[rarity].color }} />
+                              <h4 className="font-black text-sm uppercase tracking-widest" style={{ color: RARITIES[rarity].color }}>
+                                {rarity} ({cardsOfRarity.length})
+                              </h4>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
+                              {cardsOfRarity.map(card => {
+                                const isOwned = (userData?.collection[card.id] || 0) > 0;
+                                return (
+                                  <div key={card.id} className="flex items-center justify-between text-[11px] py-1 border-b border-white/[0.02]">
+                                    <span className={`font-bold transition-colors ${isOwned ? 'text-zinc-200' : 'text-zinc-600'}`}>
+                                      {card.name}
+                                    </span>
+                                    <div className={`w-2 h-2 rounded-full ${isOwned ? 'bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-zinc-800'}`} />
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
-                            {cardsOfRarity.map(card => {
-                              const isOwned = (userData?.collection[card.id] || 0) > 0;
-                              return (
-                                <div key={card.id} className="flex items-center justify-between text-[11px] py-1 border-b border-white/[0.02]">
-                                  <span className={`font-bold transition-colors ${isOwned ? 'text-zinc-200' : 'text-zinc-600'}`}>
-                                    {card.name}
-                                  </span>
-                                  <div className={`w-2 h-2 rounded-full ${isOwned ? 'bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-zinc-800'}`} />
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </section>
               </div>

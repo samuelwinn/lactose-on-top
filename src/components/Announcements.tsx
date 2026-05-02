@@ -15,8 +15,8 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
   const { level } = useObfuscation();
   const updates = [
     {
-      title: "CARDS: VIDEO GAMES PACK",
-      description: "A new card pack has arrived! Introducing the 'Video Games' pack with 100 new entries. Note: All previous card data has been reset for the new season.",
+      title: "CARDS: SEASONAL SYSTEM",
+      description: "A seasonal system is live! Introducing the 'Video Game' set. Your old cards from 'New Genesis' have been fully restored and can be pulled separately. Use the new Vault and Checklist tabs to manage both sets!",
       icon: <Layers size={18} className="text-white" />,
     },
     {

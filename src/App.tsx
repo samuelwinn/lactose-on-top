@@ -222,7 +222,7 @@ export default function App() {
   useEffect(() => {
     const syncApps = () => {
       // Cards Sync
-      const cardsData = localStorage.getItem('tcg_data_v3');
+      const cardsData = localStorage.getItem('tcg_data_v2');
       if (cardsData) {
         const parsed = JSON.parse(cardsData);
         if (parsed.lastPackOpened) {
