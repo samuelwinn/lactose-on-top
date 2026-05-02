@@ -18,7 +18,7 @@ import { BootScreen } from './components/BootScreen';
 import { normalizeTitle, obfuscate } from './constants';
 import { useObfuscation } from './context/ObfuscationContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Pickaxe, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star, Download } from 'lucide-react';
+import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Pickaxe, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star } from 'lucide-react';
 import { Game, WidgetSettings } from './types';
 
 const GameCard: React.FC<{
@@ -147,8 +147,6 @@ export default function App() {
   const [notifications, setNotifications] = useState<{ id: string; message: string; type: string }[]>([]);
   const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'appstore' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'widget'>('desktop');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialDecoy, setIsInitialDecoy] = useState(true);
@@ -305,38 +303,9 @@ export default function App() {
   const [isListeningForKey, setIsListeningForKey] = useState(false);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBtn(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-      });
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      addNotification("To install: Use your browser's menu ('Add to Home Screen' or 'Install app')", 'info');
-      return;
-    }
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-    setShowInstallBtn(false);
-  };
 
   // Global Audio Logic
   useEffect(() => {
@@ -607,17 +576,17 @@ export default function App() {
   }, [panicKey, panicUrl, panicEnabled, isListeningForKey, view]);
 
   const filteredGames = useMemo(() => {
-    return (games || []).filter(game => 
-      game && game.name && game.name.toLowerCase().includes((searchQuery || '').toLowerCase())
+    return games.filter(game => 
+      game.name && game.name.toLowerCase().includes((searchQuery || '').toLowerCase())
     ).sort((a, b) => normalizeTitle(a.name || '').localeCompare(normalizeTitle(b.name || '')));
   }, [games, searchQuery]);
 
   const favoritedGames = useMemo(() => {
-    return (filteredGames || []).filter(game => game && game.name && (favorites || []).includes(game.name));
+    return filteredGames.filter(game => game.name && (favorites || []).includes(game.name));
   }, [filteredGames, favorites]);
 
   const otherGames = useMemo(() => {
-    return (filteredGames || []).filter(game => game && game.name && !(favorites || []).includes(game.name));
+    return filteredGames.filter(game => game.name && !(favorites || []).includes(game.name));
   }, [filteredGames, favorites]);
 
   const otherSites = useMemo(() => {
@@ -1000,17 +969,6 @@ export default function App() {
                   <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-2">ARCADE</h1>
                 </div>
                 <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleInstallClick}
-                    className={`flex items-center gap-2 px-4 py-3 border rounded-xl text-xs font-bold transition-all ${
-                      showInstallBtn 
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 animate-pulse' 
-                        : 'bg-white/5 border-white/10 text-zinc-500'
-                    }`}
-                  >
-                    <Download size={14} />
-                    {showInstallBtn ? 'INSTALL APP' : 'ADD TO HOME'}
-                  </button>
                   <button
                     onClick={() => {
                       if (games.length > 0) {
@@ -1581,12 +1539,7 @@ export default function App() {
             className="h-full flex flex-col overflow-hidden"
           >
             <WindowHeader title="App Store" onClose={() => setView('desktop')} />
-            <AppStore 
-              onClose={() => setView('desktop')} 
-              onSelectApp={handleGameSelect} 
-              onInstall={handleInstallClick}
-              isInstallable={showInstallBtn}
-            />
+            <AppStore onClose={() => setView('desktop')} onSelectApp={handleGameSelect} />
           </motion.div>
         ) : view === 'verse' ? (
           <motion.div 

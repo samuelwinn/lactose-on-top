@@ -8,11 +8,9 @@ import { Game } from '../types';
 interface AppStoreProps {
   onClose: () => void;
   onSelectApp: (app: Game) => void;
-  onInstall?: () => void;
-  isInstallable?: boolean;
 }
 
-export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp, onInstall, isInstallable }) => {
+export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
   const { level } = useObfuscation();
   const extraApps: Game[] = [
     {
@@ -39,22 +37,24 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp, onInst
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Top Banner section with Google Form link as requested */}
         <section className="px-8 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-10 shadow-2xl"
-            >
-              <div className="relative z-10 flex flex-col justify-between h-full gap-10">
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic leading-none">
-                    {obfuscate('Have An App You Want To Add?', level)}
-                  </h1>
-                  <p className="text-white/80 text-sm font-medium leading-relaxed">
-                    {obfuscate('Submit your work on this Google Form!', level)}
-                  </p>
-                </div>
-                <div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-10 shadow-2xl"
+          >
+            {/* Shapes */}
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-black/20 rounded-full blur-3xl" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+              <div className="text-center md:text-left space-y-4 max-w-lg">
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic leading-none">
+                  {obfuscate('Have An App You Want To Add?', level)}
+                </h1>
+                <p className="text-white/80 text-sm font-medium leading-relaxed">
+                  {obfuscate('Submit your work on this Google Form!', level)}
+                </p>
+                <div className="pt-4">
                   <a 
                     href="https://forms.gle/mivwiYmei6ARHh886" 
                     target="_blank" 
@@ -66,36 +66,19 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp, onInst
                   </a>
                 </div>
               </div>
-            </motion.div>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className={`relative overflow-hidden rounded-[2.5rem] p-10 border border-white/10 shadow-2xl ${isInstallable ? 'bg-emerald-600' : 'bg-zinc-900'}`}
-              onClick={onInstall}
-            >
-              <div className="relative z-10 flex flex-col justify-between h-full gap-8 cursor-pointer">
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic leading-none">
-                    {obfuscate('Install LACTOSE App', level)}
-                  </h1>
-                  <p className="text-white/80 text-sm font-medium leading-relaxed">
-                    {isInstallable 
-                      ? obfuscate('Your device supports direct installation! Click to install LACTOSE as a standalone app.', level)
-                      : obfuscate('Get the full experience on your home screen. Standalone mode, faster loading, and more.', level)
-                    }
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="px-6 py-3 bg-white text-black rounded-xl font-black uppercase tracking-widest text-xs">
-                    {isInstallable ? obfuscate('Install Now', level) : obfuscate('How to Install', level)}
+              <div className="hidden md:flex items-center justify-center">
+                <div className="relative">
+                  <div className="w-48 h-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[3rem] flex items-center justify-center shadow-2xl transform rotate-12">
+                    <ShoppingBag size={80} className="text-white" />
                   </div>
-                  {isInstallable && <div className="w-3 h-3 bg-white rounded-full animate-ping" />}
+                  <div className="absolute -top-4 -right-4 w-20 h-20 bg-pink-500 rounded-3xl flex items-center justify-center text-white shadow-xl transform -rotate-12 animate-bounce">
+                    <Plus size={32} />
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </section>
 
         {/* Disclaimer Section */}
