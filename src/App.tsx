@@ -715,15 +715,7 @@ export default function App() {
                     <div className="flex flex-col h-full justify-between">
                       <div className="flex justify-between items-start">
                         <div className="p-3 bg-white/5 rounded-2xl">
-                          <motion.div
-                            animate={textObfuscationLevel > 0 ? {
-                              x: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                              y: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                            } : {}}
-                            transition={{ duration: 0.2, repeat: Infinity }}
-                          >
-                            <Clock size={24} style={{ color: 'var(--primary)' }} />
-                          </motion.div>
+                          <Clock size={24} style={{ color: 'var(--primary)' }} />
                         </div>
                         <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">{obfuscate('Clock', textObfuscationLevel)}</div>
                       </div>
@@ -744,28 +736,13 @@ export default function App() {
                   >
                     <div className="flex flex-col h-full justify-between">
                       <div className="p-3 bg-white/5 w-fit rounded-2xl">
-                        <motion.div
-                          animate={textObfuscationLevel > 0 ? {
-                            x: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                            y: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                          } : {}}
-                          transition={{ duration: 0.2, repeat: Infinity }}
-                        >
-                          <Gamepad2 size={24} style={{ color: 'var(--primary)' }} />
-                        </motion.div>
+                        <Gamepad2 size={24} style={{ color: 'var(--primary)' }} />
                       </div>
                       <div>
                         <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-1">{obfuscate('Arcade', textObfuscationLevel)}</h3>
                       </div>
                       <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform">
-                        <motion.div
-                          animate={textObfuscationLevel > 1 ? {
-                            rotate: [12, 12 + (Math.random() - 0.5) * textObfuscationLevel * 5, 12],
-                          } : {}}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                        >
-                          <Gamepad2 size={120} />
-                        </motion.div>
+                        <Gamepad2 size={120} />
                       </div>
                     </div>
                   </BentoCard>
@@ -779,15 +756,7 @@ export default function App() {
                     <div className="flex flex-col h-full justify-between">
                       <div className="flex justify-between items-start">
                         <div className="p-3 bg-white/5 rounded-2xl">
-                          <motion.div
-                            animate={textObfuscationLevel > 0 ? {
-                              x: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                              y: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                            } : {}}
-                            transition={{ duration: 0.2, repeat: Infinity }}
-                          >
-                            <Layers size={24} style={{ color: 'var(--primary)' }} />
-                          </motion.div>
+                          <Layers size={24} style={{ color: 'var(--primary)' }} />
                         </div>
                         {cardsCooldown === 0 ? (
                           <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{obfuscate('Ready', textObfuscationLevel)}</div>
@@ -840,14 +809,7 @@ export default function App() {
                                 <div className="text-[9px] text-zinc-500 font-mono">{obfuscate('READY', textObfuscationLevel)}</div>
                               </div>
                               <div className="opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                <motion.div
-                                  animate={textObfuscationLevel > 0 ? {
-                                    rotate: [0, (Math.random() - 0.5) * textObfuscationLevel * 10, 0],
-                                  } : {}}
-                                  transition={{ duration: 0.3, repeat: Infinity }}
-                                >
                                   <Gamepad2 size={14} style={{ color: 'var(--primary)' }} />
-                                </motion.div>
                               </div>
                             </div>
                           ))
@@ -866,15 +828,7 @@ export default function App() {
                   >
                     <div className="flex items-center gap-6 h-full">
                       <div className="hidden sm:flex p-6 bg-white/5 rounded-[2rem] items-center justify-center">
-                        <motion.div
-                          animate={textObfuscationLevel > 0 ? {
-                            scale: [1, 1 + (Math.random() - 0.5) * 0.1 * textObfuscationLevel, 1],
-                            rotate: [0, (Math.random() - 0.5) * textObfuscationLevel * 5, 0],
-                          } : {}}
-                          transition={{ duration: 0.4, repeat: Infinity }}
-                        >
                           <Bell size={40} style={{ color: 'var(--primary)' }} />
-                        </motion.div>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -895,14 +849,7 @@ export default function App() {
                   >
                     <div className="flex flex-col h-full justify-between">
                       <div className="p-3 bg-zinc-950/50 w-fit rounded-2xl">
-                        <motion.div
-                          animate={textObfuscationLevel > 0 ? {
-                            y: [0, (Math.random() - 0.5) * textObfuscationLevel * 2, 0],
-                          } : {}}
-                          transition={{ duration: 0.2, repeat: Infinity }}
-                        >
-                          <ShoppingBag size={24} style={{ color: 'var(--primary)' }} />
-                        </motion.div>
+                        <ShoppingBag size={24} style={{ color: 'var(--primary)' }} />
                       </div>
                       <div>
                         <h3 className="text-lg font-black uppercase italic tracking-tighter mb-1">{obfuscate('App Store', textObfuscationLevel)}</h3>
@@ -944,15 +891,7 @@ export default function App() {
                               className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all group-hover:bg-white/10 group-hover:border-[var(--primary)] group-hover:border-opacity-50"
                               style={{ color: 'var(--primary)' }}
                             >
-                              <motion.div
-                                animate={textObfuscationLevel > 0 ? {
-                                  rotate: [0, (Math.random() - 0.5) * textObfuscationLevel * 10, 0],
-                                  scale: [1, 1 + (Math.random() - 0.5) * 0.05 * textObfuscationLevel, 1],
-                                } : {}}
-                                transition={{ duration: 0.25, repeat: Infinity }}
-                              >
-                                {item.icon}
-                              </motion.div>
+                              {item.icon}
                             </div>
                             <span className="text-[7px] font-black uppercase tracking-tighter text-zinc-500 group-hover:text-white truncate w-full text-center px-0.5">
                               {obfuscate(item.label, textObfuscationLevel)}
