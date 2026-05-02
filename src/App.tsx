@@ -313,6 +313,8 @@ export default function App() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -321,6 +323,7 @@ export default function App() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      clearInterval(timer);
     };
   }, []);
 
@@ -604,17 +607,17 @@ export default function App() {
   }, [panicKey, panicUrl, panicEnabled, isListeningForKey, view]);
 
   const filteredGames = useMemo(() => {
-    return games.filter(game => 
-      game.name && game.name.toLowerCase().includes((searchQuery || '').toLowerCase())
+    return (games || []).filter(game => 
+      game && game.name && game.name.toLowerCase().includes((searchQuery || '').toLowerCase())
     ).sort((a, b) => normalizeTitle(a.name || '').localeCompare(normalizeTitle(b.name || '')));
   }, [games, searchQuery]);
 
   const favoritedGames = useMemo(() => {
-    return filteredGames.filter(game => game.name && (favorites || []).includes(game.name));
+    return (filteredGames || []).filter(game => game && game.name && (favorites || []).includes(game.name));
   }, [filteredGames, favorites]);
 
   const otherGames = useMemo(() => {
-    return filteredGames.filter(game => game.name && !(favorites || []).includes(game.name));
+    return (filteredGames || []).filter(game => game && game.name && !(favorites || []).includes(game.name));
   }, [filteredGames, favorites]);
 
   const otherSites = useMemo(() => {
@@ -1044,25 +1047,6 @@ export default function App() {
                 </div>
               ) : (
                 <div className="space-y-12">
-                  {(searchQuery.toLowerCase().includes('install') || searchQuery.toLowerCase().includes('lactose')) && (
-                    <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400">
-                          <Download size={32} />
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-black uppercase italic text-emerald-400">Install LACTOSE</h3>
-                          <p className="text-xs text-emerald-500/70 font-medium">Add to your home screen for the best experience.</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={handleInstallClick}
-                        className="w-full sm:w-auto px-8 py-3 bg-emerald-500 text-black font-black uppercase tracking-widest text-xs rounded-xl hover:scale-105 transition-transform"
-                      >
-                        {showInstallBtn ? 'Install Now' : 'How to Install'}
-                      </button>
-                    </div>
-                  )}
                   {favoritedGames.length > 0 && (
                     <section>
                       <div className="flex items-center gap-4 mb-8">
