@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, ShieldAlert, Zap, Calendar, Star, ExternalLink, ChevronRight, Bell, Sparkles, ShoppingBag, Pickaxe, Terminal, Clock, Info, Book, Layers, FileText, PenTool, Headset, Music } from 'lucide-react';
+import { MessageSquare, ShieldAlert, Zap, Calendar, Star, ExternalLink, ChevronRight, Bell, Sparkles, ShoppingBag, Pickaxe, Terminal, Clock, Info, Book, Layers, FileText, PenTool, Headset, Music, LayoutGrid, Gamepad2 } from 'lucide-react';
 import { obfuscate } from '../constants';
 import { useObfuscation } from '../context/ObfuscationContext';
 
@@ -14,6 +14,21 @@ interface AnnouncementsProps {
 export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, isOpen = true, onClose, onShowMore }) => {
   const { level } = useObfuscation();
   const updates = [
+    {
+      title: "ARCADE UPDATE",
+      description: "Minecraft and FNF have been officially moved to the Arcade area. You can now find all your favorite games in one place!",
+      icon: <Gamepad2 size={18} className="text-zinc-400" />,
+    },
+    {
+      title: "OBFUSCATION",
+      description: "We've added Homoglyph Obfuscation to keep your content safe from AI filters and prying eyes. It hides text from machine vision while remaining readable to you!",
+      icon: <ShieldAlert size={18} className="text-red-400" />,
+    },
+    {
+      title: "BENTO GRID",
+      description: "Our new Bento Grid design now scales to fit any screen size perfectly, providing a beautiful edge-to-edge experience on all laptops and monitors.",
+      icon: <LayoutGrid size={18} className="text-emerald-400" />,
+    },
     {
       title: "UI OVERHAUL",
       description: "Lactose has had a HUGE UI overhaul. I hope you like it!",
