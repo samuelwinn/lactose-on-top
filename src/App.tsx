@@ -18,7 +18,7 @@ import { BootScreen } from './components/BootScreen';
 import { normalizeTitle, obfuscate } from './constants';
 import { useObfuscation } from './context/ObfuscationContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Pickaxe, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star } from 'lucide-react';
+import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Pickaxe, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star, Download } from 'lucide-react';
 import { Game, WidgetSettings } from './types';
 
 const GameCard: React.FC<{
@@ -147,6 +147,8 @@ export default function App() {
   const [notifications, setNotifications] = useState<{ id: string; message: string; type: string }[]>([]);
   const [view, setView] = useState<'desktop' | 'games' | 'othersites' | 'theme' | 'security' | 'about' | 'html' | 'calculator' | 'announcements' | 'tomodachi' | 'clock' | 'appstore' | 'verse' | 'cards' | 'gamenotes' | 'paint' | 'lofi' | 'widget'>('desktop');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [isInitialDecoy, setIsInitialDecoy] = useState(true);
@@ -303,9 +305,32 @@ export default function App() {
   const [isListeningForKey, setIsListeningForKey] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    setShowInstallBtn(false);
+  };
 
   // Global Audio Logic
   useEffect(() => {
@@ -969,6 +994,15 @@ export default function App() {
                   <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-2">ARCADE</h1>
                 </div>
                 <div className="flex items-center gap-4">
+                  {showInstallBtn && (
+                    <button
+                      onClick={handleInstallClick}
+                      className="hidden sm:flex items-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs font-bold hover:bg-emerald-500/20 transition-all text-emerald-400 animate-pulse"
+                    >
+                      <Download size={14} />
+                      INSTALL APP
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       if (games.length > 0) {
