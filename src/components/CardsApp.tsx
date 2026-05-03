@@ -224,13 +224,13 @@ export const CardsApp: React.FC = () => {
           <div className="max-w-4xl mx-auto flex flex-col items-center py-12">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Generate Pack</h2>
-              <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">Choose your data stream. Cooldown is shared.</p>
+              <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">Choose your Pack. Cooldown is shared.</p>
               
               {cooldown > 0 && (
                 <div className="mt-6 flex items-center gap-2 justify-center px-6 py-3 bg-zinc-900 border border-white/5 rounded-2xl">
                   <Clock size={16} className="text-zinc-500" />
                   <span className="text-xs font-mono font-bold text-zinc-400">
-                    LOCKED: {Math.floor(cooldown / 60000)}:${(Math.floor((cooldown % 60000) / 1000)).toString().padStart(2, '0')} REMAINING
+                    LOCKED: {Math.floor(cooldown / 60000)}:{(Math.floor((cooldown % 60000) / 1000)).toString().padStart(2, '0')} REMAINING
                   </span>
                 </div>
               )}
@@ -253,7 +253,7 @@ export const CardsApp: React.FC = () => {
                   className={`relative z-10 w-full py-5 rounded-2xl font-black uppercase italic tracking-[0.2em] transition-all ${
                     cooldown > 0 || pulling 
                     ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' 
-                    : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-xl'
+                    : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-xl underline decoration-2 underline-offset-4'
                   }`}
                 >
                   {pulling ? 'SCANNING...' : (cooldown > 0 ? `LOCKED (${Math.floor(cooldown / 60000)}:${(Math.floor((cooldown % 60000) / 1000)).toString().padStart(2, '0')})` : 'GENERATE PACK')}

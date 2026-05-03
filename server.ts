@@ -58,7 +58,7 @@ async function startServer() {
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for large games
 
           response = await fetch(targetUrl, {
             headers: defaultHeaders,
@@ -74,7 +74,7 @@ async function startServer() {
           if (response.status === 503 || response.status === 429) {
              if (attempt < MAX_RETRIES) {
                console.log(`[Proxy] Retry attempt ${attempt + 1} due to status ${response.status}`);
-               await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+               await new Promise(r => setTimeout(r, 2000 * (attempt + 1))); // Wait a bit longer for retries
                continue;
              }
           }
@@ -90,22 +90,19 @@ async function startServer() {
           
           if (attempt < MAX_RETRIES && (isTimeout || isConnReset)) {
             console.log(`[Proxy] Retry attempt ${attempt + 1} for ${targetUrl} due to ${isTimeout ? 'Timeout' : 'Connection Reset'}`);
-            await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
             continue;
           }
-          // On last attempt or non-retryable error, don't throw, just let the loop end
           break;
         }
       }
 
-      const isTimeout = lastError?.name === 'AbortError' || lastError?.code === 'UND_ERR_CONNECT_TIMEOUT';
+      const isTimeout = lastError?.name === 'AbortError' || lastError?.code === 'UND_ERR_CONNECT_TIMEOUT' || lastError?.name === 'ConnectTimeoutError';
 
       if (!response || !response.ok) {
         const status = isTimeout ? 504 : (response?.status || 500);
         const statusText = isTimeout ? "Gateway Timeout" : (response?.statusText || "Internal Server Error");
         
-        // Use warn instead of error for target-side or network issues to avoid scary logs
-        // This is important because the frontend implements fallbacks and retries
         if (isTimeout || lastError?.code === 'ECONNRESET' || status >= 500) {
           console.warn(`[Proxy] Target issue with ${targetUrl}: ${statusText} (${status})`);
         } else {
@@ -115,34 +112,42 @@ async function startServer() {
         return res.status(status).send(`Failed to fetch from target: ${statusText} (${status})`);
       }
       
-      let content = await response.text();
       let contentType = response.headers.get('content-type') || 'text/html';
+      let buffer = await response.arrayBuffer();
 
       // Handle Google Drive "large file" or security confirmation
-      if (url.includes('drive.google.com') && content.includes('confirm=')) {
-        const confirmMatch = content.match(/confirm=([a-zA-Z0-9_]+)/);
-        if (confirmMatch) {
-          const confirmedUrl = `${targetUrl}&confirm=${confirmMatch[1]}`;
-          console.log(`[Proxy] Detected Google Drive confirmation. Retrying with: ${confirmedUrl}`);
-          
-          const confirmedResponse = await fetch(confirmedUrl, {
-            headers: defaultHeaders,
-            redirect: 'follow'
-          });
-          
-          if (confirmedResponse.ok) {
-            content = await confirmedResponse.text();
-            contentType = confirmedResponse.headers.get('content-type') || contentType;
+      if (url.includes('drive.google.com')) {
+        const contentText = new TextDecoder().decode(buffer.slice(0, 5000)); // Just check the beginning for confirm=
+        if (contentText.includes('confirm=')) {
+          const confirmMatch = contentText.match(/confirm=([a-zA-Z0-9_]+)/);
+          if (confirmMatch) {
+            const confirmedUrl = `${targetUrl}&confirm=${confirmMatch[1]}`;
+            console.log(`[Proxy] Detected Google Drive confirmation. Retrying with: ${confirmedUrl}`);
+            
+            // Extract and pass cookies if present (crucial for confirm= links)
+            const cookies = response.headers.get('set-cookie');
+            
+            const confirmedResponse = await fetch(confirmedUrl, {
+              headers: {
+                ...defaultHeaders,
+                ...(cookies ? { 'Cookie': cookies } : {})
+              },
+              redirect: 'follow'
+            });
+            
+            if (confirmedResponse.ok) {
+              buffer = await confirmedResponse.arrayBuffer();
+              contentType = confirmedResponse.headers.get('content-type') || contentType;
+            }
           }
         }
       }
       
       // Set correct content type
       res.setHeader('Content-Type', contentType);
-      // Allow cross-origin for the blob creation if needed, though same-origin here
       res.setHeader('Access-Control-Allow-Origin', '*'); 
       
-      res.send(content);
+      res.send(Buffer.from(buffer));
     } catch (error) {
       // Catch-all for truly critical server errors (syntax, etc)
       if (error instanceof Error && error.name === 'AbortError') return; // Handled
