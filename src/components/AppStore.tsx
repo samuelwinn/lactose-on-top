@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { ShoppingBag, ExternalLink, Plus } from 'lucide-react';
+import { ShoppingBag, ExternalLink, Plus, Package, Gamepad2, Star, Sparkles, LayoutGrid } from 'lucide-react';
 import { obfuscate } from '../constants';
 import { useObfuscation } from '../context/ObfuscationContext';
 import { Game } from '../types';
@@ -12,6 +12,8 @@ interface AppStoreProps {
 
 export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
   const { level } = useObfuscation();
+  const [activeTab, setActiveTab ] = useState<'apps' | 'originals'>('apps');
+
   const extraApps: Game[] = [
     {
       name: "Font Changer",
@@ -30,96 +32,221 @@ export const AppStore: React.FC<AppStoreProps> = ({ onClose, onSelectApp }) => {
     }
   ];
 
+  const myGames: Game[] = [
+    {
+      name: "Retro Strike",
+      html: "", 
+      isNative: true,
+      subtitle: "A Tekken/Street Fighter Style game made by Orcaweesh",
+      description: "A fast-paced retro-style fighting game developed by Orcaweesh. Experience intense combat with unique character specials."
+    }
+  ];
+
   return (
     <div className="h-full flex flex-col bg-zinc-950">
-      {/* Header handled by WindowHeader in App.tsx but we can add secondary nav */}
-      
+      {/* Tab Navigation */}
+      <div className="px-8 pt-6 flex items-center gap-4 border-b border-white/5">
+        <button 
+          onClick={() => setActiveTab('apps')}
+          className={`flex items-center gap-2 pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'apps' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+        >
+          <LayoutGrid size={14} />
+          {obfuscate('Apps', level)}
+          {activeTab === 'apps' && (
+            <motion.div layoutId="appstore-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-full" />
+          )}
+        </button>
+        <button 
+          onClick={() => setActiveTab('originals')}
+          className={`flex items-center gap-2 pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'originals' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+        >
+          <Sparkles size={14} />
+          {obfuscate('Originals', level)}
+          {activeTab === 'originals' && (
+            <motion.div layoutId="appstore-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-full" />
+          )}
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {/* Top Banner section with Google Form link as requested */}
-        <section className="px-8 py-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-10 shadow-2xl"
-          >
-            {/* Shapes */}
-            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-black/20 rounded-full blur-3xl" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-              <div className="text-center md:text-left space-y-4 max-w-lg">
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic leading-none">
-                  {obfuscate('Have An App You Want To Add?', level)}
-                </h1>
-                <p className="text-white/80 text-sm font-medium leading-relaxed">
-                  {obfuscate('Submit your work on this Google Form!', level)}
-                </p>
-                <div className="pt-4">
-                  <a 
-                    href="https://forms.gle/mivwiYmei6ARHh886" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl"
-                  >
-                    {obfuscate('Submit Work', level)}
-                    <ExternalLink size={18} />
-                  </a>
-                </div>
-              </div>
-
-              <div className="hidden md:flex items-center justify-center">
-                <div className="relative">
-                  <div className="w-48 h-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[3rem] flex items-center justify-center shadow-2xl transform rotate-12">
-                    <ShoppingBag size={80} className="text-white" />
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-20 h-20 bg-pink-500 rounded-3xl flex items-center justify-center text-white shadow-xl transform -rotate-12 animate-bounce">
-                    <Plus size={32} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Disclaimer Section */}
-        <section className="px-8 pb-12">
-          <div className="flex items-center gap-4 mb-6">
-            <h3 className="text-xl font-black tracking-tighter uppercase italic">{obfuscate('Disclaimer', level)}</h3>
-            <div className="h-px flex-1 bg-white/5" />
-          </div>
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6">
-            <p className="text-zinc-500 text-sm font-medium leading-relaxed italic">
-              {obfuscate('"The creator of LACTOSE, Orcaweesh, did not make any of these apps. They might not all work properly, and Orcaweesh can\'t do anything about it."', level)}
-            </p>
-          </div>
-        </section>
-
-        {/* Extra Apps List */}
-        <section className="px-8 pb-16">
-          <div className="flex items-center gap-4 mb-8">
-            <h3 className="text-xl font-black tracking-tighter uppercase italic">{obfuscate('EXTRA APPS', level)}</h3>
-            <div className="h-px flex-1 bg-white/5" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {extraApps.map((app, i) => (
-              <div 
-                key={i} 
-                onClick={() => onSelectApp(app)}
-                className="flex items-center gap-5 p-5 bg-zinc-900/30 border border-white/5 rounded-[1.5rem] hover:bg-zinc-900/50 transition-all group cursor-pointer"
+        {activeTab === 'apps' ? (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Top Banner section */}
+            <section className="px-8 py-10">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-10 shadow-2xl"
               >
-                <div className="w-14 h-14 bg-zinc-950 border border-white/5 rounded-2xl flex items-center justify-center text-xl font-black group-hover:scale-105 transition-transform" style={{ color: 'var(--primary)' }}>
-                  {obfuscate(app.name.charAt(0), level)}
+                {/* Shapes */}
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-black/20 rounded-full blur-3xl" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+                  <div className="text-center md:text-left space-y-4 max-w-lg">
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic leading-none">
+                      {obfuscate('Have An App You Want To Add?', level)}
+                    </h1>
+                    <p className="text-white/80 text-sm font-medium leading-relaxed">
+                      {obfuscate('Submit your work on this Google Form!', level)}
+                    </p>
+                    <div className="pt-4">
+                      <a 
+                        href="https://forms.gle/mivwiYmei6ARHh886" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-xl"
+                      >
+                        {obfuscate('Submit Work', level)}
+                        <ExternalLink size={18} />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="hidden md:flex items-center justify-center">
+                    <div className="relative">
+                      <div className="w-48 h-48 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[3rem] flex items-center justify-center shadow-2xl transform rotate-12">
+                        <ShoppingBag size={80} className="text-white" />
+                      </div>
+                      <div className="absolute -top-4 -right-4 w-20 h-20 bg-pink-500 rounded-3xl flex items-center justify-center text-white shadow-xl transform -rotate-12 animate-bounce">
+                        <Plus size={32} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h5 className="font-bold text-white text-sm tracking-tight">{obfuscate(app.name, level)}</h5>
-                  <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">{obfuscate(app.subtitle || "Baycoln99", level)}</p>
-                </div>
+              </motion.div>
+            </section>
+
+            {/* Disclaimer Section */}
+            <section className="px-8 pb-12">
+              <div className="flex items-center gap-4 mb-6">
+                <h3 className="text-xl font-black tracking-tighter uppercase italic">{obfuscate('Disclaimer', level)}</h3>
+                <div className="h-px flex-1 bg-white/5" />
               </div>
-            ))}
+              <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6">
+                <p className="text-zinc-500 text-sm font-medium leading-relaxed italic">
+                  {obfuscate('"The creator of LACTOSE, Orcaweesh, did not make any of these apps. They might not all work properly, and Orcaweesh can\'t do anything about it."', level)}
+                </p>
+              </div>
+            </section>
+
+            {/* Extra Apps List */}
+            <section className="px-8 pb-16">
+              <div className="flex items-center gap-4 mb-8">
+                <h3 className="text-xl font-black tracking-tighter uppercase italic">{obfuscate('EXTRA APPS', level)}</h3>
+                <div className="h-px flex-1 bg-white/5" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {extraApps.map((app, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => onSelectApp(app)}
+                    className="flex items-center gap-5 p-5 bg-zinc-900/30 border border-white/5 rounded-[1.5rem] hover:bg-zinc-900/50 transition-all group cursor-pointer"
+                  >
+                    <div className="w-14 h-14 bg-zinc-950 border border-white/5 rounded-2xl flex items-center justify-center text-xl font-black group-hover:scale-105 transition-transform" style={{ color: 'var(--primary)' }}>
+                      {obfuscate(app.name.charAt(0), level)}
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-white text-sm tracking-tight">{obfuscate(app.name, level)}</h5>
+                      <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">{obfuscate(app.subtitle || "Baycoln99", level)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
-        </section>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Originals Content */}
+            <section className="px-8 py-10">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-indigo-900 via-zinc-900 to-emerald-900 p-12 border border-white/10 shadow-2xl"
+              >
+                {/* Animated Glows */}
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/20 rounded-full blur-[100px] animate-pulse" />
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-[100px]" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+                  <div className="text-center md:text-left space-y-6 max-w-xl">
+                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase italic leading-none">
+                      {obfuscate('ORIGINALS', level)}
+                    </h1>
+                    <p className="text-zinc-400 text-base font-medium leading-relaxed max-w-md">
+                      {obfuscate('The ultimate collection of games handcrafted by the creator of LACTOSE. Experience original gameplay and unique mechanics.', level)}
+                    </p>
+                  </div>
+
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                    <div className="w-56 h-56 md:w-72 md:h-72 bg-zinc-950 border-4 border-white/5 rounded-[4rem] flex items-center justify-center shadow-2xl relative z-10 overflow-hidden transform group-hover:rotate-3 transition-transform">
+                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Package size={120} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </section>
+
+            {/* Featured Game Section */}
+            <section className="px-8 pb-16">
+              <div className="flex items-center gap-4 mb-10">
+                <h3 className="text-2xl font-black tracking-tighter uppercase italic text-white flex items-center gap-3">
+                    <Star className="text-amber-400" size={24} />
+                    {obfuscate('Lactose Originals', level)}
+                </h3>
+                <div className="h-px flex-1 bg-white/5" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-8">
+                {myGames.map((game, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    onClick={() => onSelectApp(game)}
+                    className="group relative overflow-hidden bg-zinc-900/30 border border-white/10 rounded-[2.5rem] p-8 hover:bg-zinc-900/50 transition-all cursor-pointer flex flex-col md:flex-row items-center gap-10"
+                  >
+                    {/* Visual Accent */}
+                    <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    <div className="w-32 h-32 md:w-48 md:h-48 bg-zinc-950 rounded-[2rem] border border-white/5 flex items-center justify-center text-4xl font-black group-hover:scale-105 transition-transform shrink-0" style={{ color: 'var(--primary)' }}>
+                      {obfuscate(game.name.charAt(0), level)}
+                    </div>
+                    
+                    <div className="flex-1 text-center md:text-left space-y-4">
+                      <div className="space-y-1">
+                        <h4 className="text-3xl font-black text-white tracking-tighter uppercase group-hover:text-emerald-400 transition-colors">
+                          {obfuscate(game.name, level)}
+                        </h4>
+                        <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                          {obfuscate(game.subtitle || "ORIGINALS • ORIGINAL", level)}
+                        </p>
+                      </div>
+                      <p className="text-sm text-zinc-400 leading-relaxed max-w-xl italic">
+                        {obfuscate(game.description || "No description available.", level)}
+                      </p>
+                      <div className="pt-2 flex items-center gap-4 justify-center md:justify-start">
+                        <div className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 group-hover:bg-emerald-400 transition-colors">
+                            Play Now
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="absolute right-12 bottom-12 opacity-0 group-hover:opacity-10 transition-opacity hidden lg:block">
+                        <Gamepad2 size={160} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+

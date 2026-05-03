@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
 import { normalizeTitle } from '../constants';
 import { Game } from '../types';
+import RetroStrikeGame from './retro-strike/RetroStrikeGame';
 
 interface GameRunnerProps {
   game: Game | null;
@@ -56,6 +57,32 @@ export const GameRunner: React.FC<GameRunnerProps> = ({ game, onClose }) => {
   const loadGame = React.useCallback(async () => {
     if (!game) return;
     
+    // For native games, we don't need to fetch anything
+    if (game.isNative) {
+      setBooting(true);
+      setShowD3(false);
+      setIsFullyReady(false);
+      setError(null);
+      setShowRefreshConfirm(false);
+      setShowRefreshFinalConfirm(false);
+
+      // Cleanup previous URL
+      if (gameUrlRef.current) {
+        URL.revokeObjectURL(gameUrlRef.current);
+        gameUrlRef.current = null;
+        setGameUrl(null);
+      }
+
+      setCurrentTip(tips[Math.floor(Math.random() * tips.length)]);
+      
+      // Artificial delay for that "booting" feel
+      setTimeout(() => {
+        setBooting(false);
+        setIsFullyReady(true);
+      }, 1000);
+      return;
+    }
+
     // For local files, we can just load them directly in the iframe to save memory/time
     if (game.html.startsWith('/') && game.html.endsWith('.html')) {
       gameUrlRef.current = game.html;
@@ -187,6 +214,45 @@ export const GameRunner: React.FC<GameRunnerProps> = ({ game, onClose }) => {
 
   if (!game) return null;
 
+  const renderGameContent = () => {
+    if (game.isNative) {
+      if (game.name === 'Retro Strike') {
+        return (
+          <div className="w-full h-full bg-black overflow-hidden relative">
+            <RetroStrikeGame />
+          </div>
+        );
+      }
+      return <div>Native game not found</div>;
+    }
+
+    if (error) {
+      return (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-8 bg-black">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <div className="text-zinc-400 max-w-xs font-mono text-sm">{error}</div>
+          <button 
+            onClick={loadGame}
+            className="mt-6 px-8 py-3 bg-zinc-900 border border-white/10 hover:border-white/20 rounded-xl text-xs font-bold transition-all uppercase tracking-widest"
+          >
+            Retry Boot
+          </button>
+        </div>
+      );
+    }
+
+    return gameUrl && (
+      <iframe
+        ref={iframeRef}
+        className="w-full h-full border-none bg-black"
+        title="Game View"
+        sandbox="allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-same-origin allow-pointer-lock"
+        allow="pointer-lock; fullscreen; autoplay"
+        src={gameUrl}
+      />
+    );
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -237,6 +303,7 @@ export const GameRunner: React.FC<GameRunnerProps> = ({ game, onClose }) => {
 
           {/* Content Area */}
           <div className="relative flex-1 bg-black overflow-hidden">
+            {renderGameContent()}
             <AnimatePresence>
               {showRefreshConfirm && (
                 <motion.div
@@ -381,30 +448,6 @@ export const GameRunner: React.FC<GameRunnerProps> = ({ game, onClose }) => {
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {error ? (
-              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-8 bg-black">
-                <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                <div className="text-zinc-400 max-w-xs font-mono text-sm">{error}</div>
-                <button 
-                  onClick={loadGame}
-                  className="mt-6 px-8 py-3 bg-zinc-900 border border-white/10 hover:border-white/20 rounded-xl text-xs font-bold transition-all uppercase tracking-widest"
-                >
-                  Retry Boot
-                </button>
-              </div>
-            ) : (
-              gameUrl && (
-                <iframe
-                  ref={iframeRef}
-                  className="w-full h-full border-none bg-black"
-                  title="Game View"
-                  sandbox="allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-same-origin allow-pointer-lock"
-                  allow="pointer-lock; fullscreen; autoplay"
-                  src={gameUrl}
-                />
-              )
-            )}
           </div>
         </div>
       </motion.div>

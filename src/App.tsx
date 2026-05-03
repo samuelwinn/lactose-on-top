@@ -18,7 +18,7 @@ import { BootScreen } from './components/BootScreen';
 import { normalizeTitle, obfuscate } from './constants';
 import { useObfuscation } from './context/ObfuscationContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Pickaxe, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star } from 'lucide-react';
+import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Package, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star } from 'lucide-react';
 import { Game, WidgetSettings } from './types';
 
 const GameCard: React.FC<{

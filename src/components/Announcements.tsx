@@ -15,6 +15,11 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
   const { level } = useObfuscation();
   const updates = [
     {
+      title: "ORIGINALS ARE HERE!",
+      description: "A new dedicated section in the App Store for games handcrafted by Orcaweesh. Check out our first release: Retro Strike, an intense fighting game with unique character specials!",
+      icon: <Sparkles size={18} className="text-emerald-400" />,
+    },
+    {
       title: "CARDS: SEASONAL SYSTEM",
       description: "A seasonal system is live! Introducing the 'Video Game' set. Your old cards from 'New Genesis' have been fully restored and can be pulled separately. Use the new Vault and Checklist tabs to manage both sets!",
       icon: <Layers size={18} className="text-white" />,
