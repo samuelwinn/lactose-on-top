@@ -117,15 +117,21 @@ async function startServer() {
 
       // Handle Google Drive "large file" or security confirmation
       if (url.includes('drive.google.com')) {
-        const contentText = new TextDecoder().decode(buffer.slice(0, 5000)); // Just check the beginning for confirm=
+        const contentText = new TextDecoder().decode(buffer.slice(0, 10000)); // Scan more for confirm=
         if (contentText.includes('confirm=')) {
           const confirmMatch = contentText.match(/confirm=([a-zA-Z0-9_]+)/);
           if (confirmMatch) {
-            const confirmedUrl = `${targetUrl}&confirm=${confirmMatch[1]}`;
+            const separator = targetUrl.includes('?') ? '&' : '?';
+            const confirmedUrl = `${targetUrl}${separator}confirm=${confirmMatch[1]}`;
             console.log(`[Proxy] Detected Google Drive confirmation. Retrying with: ${confirmedUrl}`);
             
             // Extract and pass cookies if present (crucial for confirm= links)
-            const cookies = response.headers.get('set-cookie');
+            const cookieHeader = response.headers.get('set-cookie');
+            let cookies = '';
+            if (cookieHeader) {
+               // Get only the key=value part of each cookie
+               cookies = cookieHeader.split(',').map(c => c.split(';')[0]).join('; ');
+            }
             
             const confirmedResponse = await fetch(confirmedUrl, {
               headers: {
@@ -138,6 +144,8 @@ async function startServer() {
             if (confirmedResponse.ok) {
               buffer = await confirmedResponse.arrayBuffer();
               contentType = confirmedResponse.headers.get('content-type') || contentType;
+            } else {
+              console.warn(`[Proxy] Confirmation retry failed for ${confirmedUrl}: ${confirmedResponse.status}`);
             }
           }
         }
