@@ -41,13 +41,13 @@ export const Announcements: React.FC<AnnouncementsProps> = ({ isModal = false, i
 
 Please read this update carefully regarding the future of Lactose.
 
-Effective immediately, Lactose will receive one final update. This update is dedicated to fixing the current system and ensuring that both existing links are fully operational once again.
+Effective immediately, Lactose will receive one final update. This update is dedicated to fixing the current system and ensuring that all three existing links are fully operational once again.
 
 Following this release, development will officially conclude.
 
 ### What You Need to Know
 
-*   **The Final Fix:** Work is underway to get both links working properly. They will remain active for the foreseeable future once fixed.
+*   **The Final Fix:** Work is underway to get all three links working properly. They will remain active for the foreseeable future once fixed.
 *   **No New Links:** There will be no new links or additional mirrors generated after this update.
 *   **End of Development:** No further feature updates, content additions, or patches will be released.
 
@@ -58,6 +58,11 @@ While official updates are coming to an end, the community isn't going anywhere!
 The Discord server will remain fully active. Moving forward, the server will be used as our primary space to share games, hang out, and swap content.
 
 We sincerely apologize to anyone who was hoping for long-term updates and ongoing development. Thank you all for your incredible support, your patience, and for being a part of this journey.
+
+### Official Links
+*   **lactoze.com**
+*   **student-education.com**
+*   **laclife.org**
 
 See you over on Discord!
 
@@ -102,6 +107,8 @@ See you over on Discord!
                   <Markdown>{announcementText}</Markdown>
               </div>
             </div>
+
+
             
             {/* Target for intersection observer */}
             <div ref={bottomRef} className="h-4 mt-20" />
@@ -174,21 +181,7 @@ See you over on Discord!
           </div>
         </div>
 
-        <div className="mt-12 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="space-y-4 text-center md:text-left">
-                <h4 className="text-xl font-bold text-white tracking-tight">The community continues on Discord</h4>
-                <p className="text-zinc-500 text-sm max-w-md">Join over 10,000 members sharing games, content, and hosting community events.</p>
-            </div>
-            <a 
-                href="https://discord.gg/3XAgBPC3vx" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm transition-all shadow-2xl shadow-indigo-600/30 hover:-translate-y-1"
-            >
-                <MessageSquare size={20} />
-                {obfuscate('Join Discord Server', level)}
-            </a>
-        </div>
+
       </motion.div>
 
       <div className="py-20 text-center opacity-30">

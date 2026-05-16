@@ -13,9 +13,9 @@ const OceanWave: React.FC<{
   offset?: string;
 }> = ({ delay, duration, opacity, zIndex, waveHeight, horizontalSpeed, offset = "0%" }) => (
   <motion.div
-    initial={{ y: '105%' }}
+    initial={{ height: '0%' }}
     animate={{ 
-      y: ['105%', '-15%', '105%'],
+      height: ['0%', '110%', '0%'],
     }}
     transition={{ 
       duration: duration, 
@@ -23,8 +23,8 @@ const OceanWave: React.FC<{
       times: [0, 0.45, 1],
       ease: "easeInOut",
     }}
-    className="absolute inset-x-0 bottom-0 flex flex-col pointer-events-none"
-    style={{ height: '120vh', zIndex }}
+    className="absolute inset-x-0 bottom-0 flex flex-col pointer-events-none overflow-hidden"
+    style={{ zIndex }}
   >
     <div className="relative w-full shrink-0 overflow-hidden" style={{ height: waveHeight }}>
         <motion.div
