@@ -18,7 +18,7 @@ import { BootScreen } from './components/BootScreen';
 import { normalizeTitle, obfuscate } from './constants';
 import { useObfuscation } from './context/ObfuscationContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Package, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star } from 'lucide-react';
+import { Gamepad2, Home as HomeIcon, Search, RotateCcw, Globe, Palette, Heart, Settings, Sparkles, Info, X, Shield, Code2, Calculator as CalculatorIcon, Bell, FileText, ExternalLink, Clock, Package, ShoppingBag, Terminal as TerminalIcon, Book, Layers, PenTool, Headset, Music, Star, AlertTriangle } from 'lucide-react';
 import { Game, WidgetSettings } from './types';
 
 const GameCard: React.FC<{
@@ -28,10 +28,15 @@ const GameCard: React.FC<{
   onToggleFavorite: (e: React.MouseEvent, gameName: string) => void;
   hideFavorite?: boolean;
   obfuscationLevel: number;
-}> = ({ game, isFavorite, onSelect, onToggleFavorite, hideFavorite, obfuscationLevel }) => (
+  hasWallpaper: boolean;
+}> = ({ game, isFavorite, onSelect, onToggleFavorite, hideFavorite, obfuscationLevel, hasWallpaper }) => (
   <div
     onClick={() => onSelect(game)}
-    className="group relative flex items-center gap-4 p-4 bg-zinc-900/50 hover:bg-zinc-800 border border-white/5 rounded-2xl transition-all text-left overflow-hidden cursor-pointer"
+    className={`group relative flex items-center gap-4 p-4 border rounded-2xl transition-all text-left overflow-hidden cursor-pointer ${
+      hasWallpaper 
+        ? 'bg-white/[0.05] backdrop-blur-xl border-white/20 hover:bg-white/[0.1] shadow-xl' 
+        : 'bg-zinc-900/50 hover:bg-zinc-800 border-white/5'
+    }`}
     style={{ borderLeft: '4px solid var(--primary)' }}
     role="button"
     tabIndex={0}
@@ -43,16 +48,18 @@ const GameCard: React.FC<{
     }}
   >
     <div 
-      className="w-12 h-12 flex-shrink-0 bg-zinc-950 rounded-xl flex items-center justify-center text-xl font-black border border-white/5 group-hover:scale-110 transition-transform"
+      className={`w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center text-xl font-black border group-hover:scale-110 transition-transform ${
+        hasWallpaper ? 'bg-black/20 backdrop-blur-md border-white/10' : 'bg-zinc-950 border-white/5'
+      }`}
       style={{ color: 'var(--primary)' }}
     >
       {obfuscate(game.name?.charAt(0).toUpperCase() || '?', obfuscationLevel)}
     </div>
-    <div className="flex-1 min-w-0">
-      <div className="text-sm font-bold truncate transition-colors group-hover:opacity-80" style={{ color: 'var(--primary)' }}>
+    <div className="flex-1 min-w-0 pointer-events-none">
+      <div className={`text-sm font-bold truncate transition-colors group-hover:opacity-80 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]`} style={{ color: 'var(--primary)' }}>
         {obfuscate(normalizeTitle(game.name || 'Unknown Game'), obfuscationLevel)}
       </div>
-      <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+      <div className={`text-[10px] font-mono uppercase tracking-widest ${hasWallpaper ? 'text-white/60 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : 'text-zinc-600'}`}>
         {obfuscate(game.html?.includes('.html') ? 'HTML5' : 'JS', obfuscationLevel)} • {obfuscate('READY', obfuscationLevel)}
       </div>
     </div>
@@ -87,15 +94,15 @@ const DesktopIcon: React.FC<{
     onClick={onClick}
     className="flex flex-col items-center gap-2 group w-20"
   >
-    <div className={`w-16 h-16 backdrop-blur-md border rounded-2xl flex items-center justify-center group-hover:scale-105 transition-all shadow-lg ${
+    <div className={`w-16 h-16 border rounded-2xl flex items-center justify-center group-hover:scale-105 transition-all shadow-lg ${
       hasWallpaper 
-        ? 'bg-black border-white/20 text-white group-hover:bg-zinc-900' 
-        : 'bg-[var(--primary-shadow)] border-white/10 text-[var(--primary)] group-hover:bg-zinc-800'
+        ? 'bg-white/[0.03] backdrop-blur-3xl backdrop-saturate-[1.8] border-white/40 text-white group-hover:bg-white/[0.06] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_16px_-4px_rgba(0,0,0,0.3)]' 
+        : 'bg-[var(--primary-shadow)] backdrop-blur-lg border-white/10 text-[var(--primary)] group-hover:bg-zinc-800'
     }`}>
       {icon}
     </div>
     <span className={`text-[10px] font-bold uppercase tracking-widest group-hover:text-white transition-colors text-center leading-tight ${
-      hasWallpaper ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]' : 'text-zinc-500'
+      hasWallpaper ? 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] opacity-90' : 'text-zinc-500'
     }`}>
       {obfuscate(label, obfuscationLevel)}
     </span>
@@ -129,15 +136,20 @@ const BentoCard: React.FC<{
     whileHover={{ scale: onClick ? 1.01 : 1 }}
     whileTap={{ scale: onClick ? 0.99 : 1 }}
     onClick={onClick}
-    className={`relative overflow-hidden border p-6 flex flex-col justify-between transition-all rounded-[2rem] ${
+    className={`relative overflow-hidden border p-6 flex flex-col justify-between transition-all rounded-[2.5rem] ${
       onClick ? 'cursor-pointer' : ''
     } ${
       hasWallpaper 
-        ? 'bg-black/40 backdrop-blur-2xl border-white/20 text-white shadow-2xl' 
+        ? 'bg-white/[0.01] backdrop-blur-3xl backdrop-saturate-[2] border-white/30 text-white shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.4),0_20px_40px_-15px_rgba(0,0,0,0.5)]' 
         : 'bg-zinc-950/50 backdrop-blur-xl border-white/10 text-white shadow-xl'
     } ${className}`}
   >
-    {children}
+    {hasWallpaper && (
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/[0.05] via-transparent to-transparent opacity-30" />
+    )}
+    <div className={`relative z-10 flex flex-col h-full justify-between ${hasWallpaper ? 'drop-shadow-[0_2px_3px_rgba(0,0,0,0.4)]' : ''}`}>
+      {children}
+    </div>
   </motion.div>
 );
 
@@ -661,7 +673,11 @@ export default function App() {
       {/* Floating Clock */}
       {widgetSettings.enabled && (
         <div className="fixed bottom-6 right-8 z-50">
-          <div className="px-4 py-2 bg-zinc-950/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl text-[10px] font-mono font-bold text-zinc-400 tabular-nums hover:text-white transition-colors">
+          <div className={`px-4 py-2 border rounded-2xl shadow-2xl text-[10px] font-mono font-bold tabular-nums transition-colors backdrop-saturate-[1.5] ${
+            wallpaper 
+              ? 'bg-white/[0.03] backdrop-blur-3xl border-white/30 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]' 
+              : 'bg-zinc-950/80 backdrop-blur-xl border-white/10 text-zinc-400 hover:text-white'
+          }`}>
             {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
           </div>
         </div>
@@ -716,13 +732,17 @@ export default function App() {
                         <div className="p-3 bg-white/5 rounded-2xl">
                           <Clock size={24} style={{ color: 'var(--primary)' }} />
                         </div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">{obfuscate('Clock', textObfuscationLevel)}</div>
+                        <div className={`text-[10px] font-black uppercase tracking-widest italic ${
+                          wallpaper ? 'text-white/40 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : 'text-zinc-500'
+                        }`}>{obfuscate('Clock', textObfuscationLevel)}</div>
                       </div>
                       <div>
                         <div className="text-6xl md:text-7xl font-black tracking-tighter tabular-nums mb-2 leading-none">
                           {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
                         </div>
-                        <div className="text-sm font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                        <div className={`text-sm font-bold uppercase tracking-[0.2em] ${
+                          wallpaper ? 'text-white/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]' : 'text-zinc-500'
+                        }`}>
                           {obfuscate(currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }), textObfuscationLevel)}
                         </div>
                       </div>
@@ -758,9 +778,13 @@ export default function App() {
                           <Layers size={24} style={{ color: 'var(--primary)' }} />
                         </div>
                         {cardsCooldown === 0 ? (
-                          <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{obfuscate('Ready', textObfuscationLevel)}</div>
+                          <div className={`text-[10px] font-black uppercase tracking-widest ${
+                            wallpaper ? 'text-emerald-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]' : 'text-emerald-500'
+                          }`}>{obfuscate('Ready', textObfuscationLevel)}</div>
                         ) : (
-                          <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest">{obfuscate('Cooling', textObfuscationLevel)}</div>
+                          <div className={`text-[10px] font-black uppercase tracking-widest ${
+                            wallpaper ? 'text-amber-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]' : 'text-amber-500'
+                          }`}>{obfuscate('Cooling', textObfuscationLevel)}</div>
                         )}
                       </div>
                       <div>
@@ -786,7 +810,9 @@ export default function App() {
                   >
                     <div className="flex flex-col h-full">
                       <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-black uppercase italic tracking-tighter">{obfuscate('Recents', textObfuscationLevel)}</h3>
+                        <h3 className={`text-lg font-black uppercase italic tracking-tighter ${
+                          wallpaper ? 'drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]' : ''
+                        }`}>{obfuscate('Recents', textObfuscationLevel)}</h3>
                         <RotateCcw size={14} className="text-zinc-600" />
                       </div>
                       <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar">
@@ -798,9 +824,15 @@ export default function App() {
                                 setSelectedGame(game);
                                 setView('games');
                               }}
-                              className="group/item flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5 cursor-pointer"
+                              className={`group/item flex items-center gap-3 p-3 rounded-2xl transition-all border cursor-pointer ${
+                                wallpaper 
+                                  ? 'bg-white/[0.05] backdrop-blur-xl border-white/20 hover:bg-white/[0.1] shadow-sm' 
+                                  : 'bg-white/5 border-white/5 hover:bg-white/10'
+                              }`}
                             >
-                              <div className="w-8 h-8 rounded-lg bg-zinc-950 flex items-center justify-center text-xs font-black" style={{ color: 'var(--primary)' }}>
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shadow-inner ${
+                                wallpaper ? 'bg-black/20 backdrop-blur-sm' : 'bg-zinc-950'
+                              }`} style={{ color: 'var(--primary)' }}>
                                 {obfuscate(game.name?.charAt(0) || '', textObfuscationLevel)}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -831,8 +863,10 @@ export default function App() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{obfuscate('Updates', textObfuscationLevel)}</span>
+                          <span className={`w-2 h-2 rounded-full animate-pulse ${wallpaper ? 'bg-white shadow-[0_0_8px_white]' : 'bg-[var(--primary)]'}`} />
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            wallpaper ? 'text-white/40 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : 'text-zinc-500'
+                          }`}>{obfuscate('Updates', textObfuscationLevel)}</span>
                         </div>
                         <h3 className="text-xl font-black uppercase italic tracking-tighter mb-1">{obfuscate('New Features Added', textObfuscationLevel)}</h3>
                         <p className="text-[10px] text-zinc-500 leading-relaxed max-w-md italic">{obfuscate('Check the updates log for the latest bypass methods and game additions.', textObfuscationLevel)}</p>
@@ -863,7 +897,9 @@ export default function App() {
                   >
                     <div className="flex flex-col h-full">
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-[10px] font-black uppercase italic tracking-widest text-zinc-600">{obfuscate('Applications', textObfuscationLevel)}</h3>
+                        <h3 className={`text-[10px] font-black uppercase italic tracking-widest ${
+                          wallpaper ? 'text-white/40 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : 'text-zinc-600'
+                        }`}>{obfuscate('Applications', textObfuscationLevel)}</h3>
                       </div>
                       <div className="flex flex-wrap gap-x-2 gap-y-4 p-2 overflow-y-auto no-scrollbar content-start">
                         {[
@@ -886,12 +922,18 @@ export default function App() {
                             className="flex flex-col items-center gap-1 w-[52px] group"
                           >
                             <div 
-                              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all group-hover:bg-white/10 group-hover:border-[var(--primary)] group-hover:border-opacity-50"
+                              className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all group-hover:bg-white/10 group-hover:border-[var(--primary)] group-hover:border-opacity-50 ${
+                                wallpaper 
+                                  ? 'bg-white/[0.05] backdrop-blur-xl border-white/20' 
+                                  : 'bg-white/5 border-white/10'
+                              }`}
                               style={{ color: 'var(--primary)' }}
                             >
                               {item.icon}
                             </div>
-                            <span className="text-[7px] font-black uppercase tracking-tighter text-zinc-500 group-hover:text-white truncate w-full text-center px-0.5">
+                            <span className={`text-[7px] font-black uppercase tracking-tighter group-hover:text-white truncate w-full text-center px-0.5 ${
+                              wallpaper ? 'text-white/80 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : 'text-zinc-500'
+                            }`}>
                               {obfuscate(item.label, textObfuscationLevel)}
                             </span>
                           </motion.button>
@@ -976,7 +1018,11 @@ export default function App() {
                         handleGameSelect(random);
                       }
                     }}
-                    className="hidden sm:flex items-center gap-2 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold hover:bg-zinc-800 transition-all text-zinc-400 hover:text-white"
+                    className={`hidden sm:flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                      wallpaper 
+                        ? 'bg-white/[0.05] backdrop-blur-xl border border-white/20 text-white hover:bg-white/[0.1]' 
+                        : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white'
+                    }`}
                   >
                     <RotateCcw size={14} />
                     RANDOM
@@ -988,7 +1034,11 @@ export default function App() {
                       placeholder="Search database..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors text-sm"
+                      className={`w-full border rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors text-sm ${
+                        wallpaper 
+                          ? 'bg-white/[0.05] backdrop-blur-xl border-white/20 text-white placeholder:text-zinc-500' 
+                          : 'bg-zinc-900 border-zinc-800 text-white'
+                      }`}
                       style={{ borderBottom: '2px solid var(--primary)' }}
                     />
                   </div>
@@ -1021,6 +1071,7 @@ export default function App() {
                             onSelect={handleGameSelect} 
                             onToggleFavorite={toggleFavorite} 
                             obfuscationLevel={textObfuscationLevel}
+                            hasWallpaper={!!wallpaper}
                           />
                         ))}
                       </div>
@@ -1044,6 +1095,7 @@ export default function App() {
                           onSelect={handleGameSelect} 
                           onToggleFavorite={toggleFavorite} 
                           obfuscationLevel={textObfuscationLevel}
+                          hasWallpaper={!!wallpaper}
                         />
                       ))}
                     </div>
@@ -1209,9 +1261,15 @@ export default function App() {
                         )}
                       </div>
                       <div className="flex-1 space-y-4 w-full">
-                        <p className="text-xs text-zinc-500 leading-relaxed">
+                        <p className="text-xs text-zinc-500 leading-relaxed italic">
                           Upload a custom image to personalize your desktop background. Supported formats: JPG, PNG, WebP.
                         </p>
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
+                          <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                          <p className="text-[10px] text-amber-500/80 font-medium leading-tight">
+                            Note: Not all images are suitable as wallpapers. Busy or bright images may make desktop text harder to read.
+                          </p>
+                        </div>
                         <div className="flex flex-wrap gap-3">
                           <label className="flex-1 sm:flex-none px-6 py-3 bg-white text-black rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all cursor-pointer text-center" style={{ backgroundColor: 'var(--primary)', color: 'white' }}>
                             <input 
